@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+}
+
+main {
+  text-align: center;
+}
+
+/* inner flex div (column) */
+#cont .n1 div {
+  text-align: left;
+  width: 100%;
+}
+
+#example-list {
+  min-width: 80%;
+  transform: rotate(3deg);
+}
+
+#title-search {
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+  -webkit-appearance: none;
+  font-size: 1.1em;
+  border-radius: 1.5em;
+  width: 90%;
+  transition: box-shadow 1s ease;
+}
+#title-search:focus {
+  box-shadow: 0px 5px 10px rgba(30, 144, 255, 0.5);
+}
+ 
+#title-search-container button {
+  top: -2.65rem;
+  left: calc(90% - 5em);
+  /* background: #1E90FF; */
+  box-shadow: 0px 4px 8px rgba(30, 144, 255, 0.5);
+  border-radius: 1.5em;
+}
+
+
+@media only screen and (max-width: 768px) {
+	#cont-1 .n1 div h1 {
+    font-weight: bolder;
+    font-size: 4em;
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  #cont {
+    display: block;
+  }
+  #cont .n1 {
+    padding-left: 1em;
+    height: auto;
+  }
+  #example-list {
+    min-width: auto;
+    margin-left: 4.5em;
+  }
+
+  #title-search {
+    width: calc(100% - 2.65em);
+  }
+  #title-search-container button {
+    /* display: none; */
+    /* top: auto; */
+    left: calc(100% - 9.65em);
+  }
+
+}

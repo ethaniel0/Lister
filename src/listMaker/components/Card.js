@@ -21,6 +21,7 @@ const Card = ({ card, onEdit, onDelete }) => {
             text: "",
             checked: false
         };
+        
         myCard.items.splice(ind+1, 0, item);
         changeNewInd(ind+1);
         onEdit(myCard);
@@ -39,14 +40,14 @@ const Card = ({ card, onEdit, onDelete }) => {
     }
     
     return (
-        <div className={'pack-list-card mb-8'} >
+        <div className='pack-list-card mb-8' >
             <CardHeader title={myCard.name} color={myCard.color} onEdit={editHeader} onDelete={deleteMe} onColorChange={editColor} />
             <div>
-                <ul className='pack-list blue'>
+                <ul className='pack-list'>
                     {card.items.map((item, i) => (
                         <Item key={item.id} focus={i === newInd} id={item.id} color={myCard.color} text={item.text} checked={item.checked} onEdit={editItem} onDelete={deleteItem} addItem={() => addItem(i)} />
                     ))}
-                    <li onClick={addItem} className={'add bg-white hover:bg-'+card.color+'-400 transition-colors cursor-pointer mb-0'}>Add Item</li>
+                    <li onClick={() => addItem()} className={'add bg-white hover:bg-'+card.color+'-400 transition-colors cursor-pointer mb-0 font-medium'}>Add Item</li>
                 </ul>
             </div>
         </div>

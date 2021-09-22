@@ -29,7 +29,7 @@ const Item = ({ color, focus, id, text, checked, onEdit, onDelete, addItem }) =>
                 value={text} 
                 onChange={(e) => onEdit(id, e.target.value, checked)}
                 onKeyDown={onEnter}
-                className='outline-none w-full border-0 ml-4 flex flex-wrap' />
+                className='outline-none w-full border-0 ml-4 flex flex-wrap font-normal' />
 
             <FaMinusCircle className="text-red-500 cursor-pointer" onClick={() => onDelete(id)} />
         </li>
