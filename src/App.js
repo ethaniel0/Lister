@@ -8,8 +8,11 @@ import Card from './components/Card';
 
 function App() {
   const [sections, setSections] = useState([]);
+  const [listName, setListName] = useState("Name");
 
   let tempId = () => Math.floor(Math.random() * 100000);
+
+  /* text-red-400 bg-red-400 bg-red-500 border-red-400 border-red-500 text-pink-400 bg-pink-400 bg-pink-500 border-pink-400 border-pink-500 text-yellow-400 bg-yellow-400 bg-yellow-500 border-yellow-400 border-yellow-500 text-green-400 bg-green-400 bg-green-500 border-green-400 border-green-500 text-blue-400 bg-blue-400 bg-blue-500 border-blue-400 border-blue-500 text-indigo-400 bg-indigo-400 bg-indigo-500 border-indigo-400 border-indigo-500 text-purple-400 bg-purple-400 bg-purple-500 border-purple-400 border-purple-500 text-gray-400 bg-gray-400 bg-gray-500 border-gray-400 border-gray-500 */
 
   const addSection = () => {
     let sid = tempId(); // get section id
@@ -36,7 +39,7 @@ function App() {
 
   return (
     <>
-      <Header />
+      <Header name={listName} setName={setListName} />
       <div className='flex flex-wrap justify-around p-4'>
         {sections.map((sec) => (
           <Card key={sec.id} card={sec} onEdit={editSection} onDelete={deleteSection} />

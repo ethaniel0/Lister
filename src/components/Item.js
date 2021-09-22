@@ -1,6 +1,6 @@
 import { FaMinusCircle } from 'react-icons/fa'
 
-const Item = ({ color, id, text, checked, onEdit, onDelete }) => {
+const Item = ({ color, focus, id, text, checked, onEdit, onDelete, addItem }) => {
     const colors = {
         red: "rgb(248, 113, 113)",
         blue: "rgb(96, 165, 250)",
@@ -11,18 +11,25 @@ const Item = ({ color, id, text, checked, onEdit, onDelete }) => {
         purple: "rgb(167, 139, 250)",
         pink: "rgb(244, 114, 182)"
     }
+
+    const onEnter = (e) => {
+        if (e.key === 'Enter') addItem();
+    }
+
     return (
-        <li className='bg-white'>
+        <li className='bg-white mb-4'>
             <input type='checkbox' 
                    checked={checked}
                    onChange={(e) => onEdit(id, text, e.currentTarget.checked)}
-                   className={'border-2 border-'+color+'-400 '}
+                   className={'border-2 border-'+color+'-400 rounded-full'}
                    style={{backgroundColor: checked ? colors[color] : ""}} />
-
+           
             <input type='text'
-                   value={text} 
-                   onChange={(e) => onEdit(id, e.target.value, checked)} 
-                   className='outline-none w-full border-0' />
+                autoFocus={focus}
+                value={text} 
+                onChange={(e) => onEdit(id, e.target.value, checked)}
+                onKeyDown={onEnter}
+                className='outline-none w-full border-0 ml-4 flex flex-wrap' />
 
             <FaMinusCircle className="text-red-500 cursor-pointer" onClick={() => onDelete(id)} />
         </li>

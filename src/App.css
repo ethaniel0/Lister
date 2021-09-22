@@ -11,20 +11,6 @@
   text-align: right;
 }
 
-.pack-list-card {
-  margin-bottom: 2em;
-}
-
-.pack-list-card span {
-  /* @apply block w-full text-2xl font-bold text-left mb-2; */
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 1.5em;
-  font-weight: 500;
-  text-align: left;
-  margin-bottom: 0.5rem;
-}
 .pack-list-card span input{
   width: 90%;
 }
@@ -37,19 +23,12 @@
 }
 
 .pack-list-card .pack-list {
+  @apply mb-0 pl-0;
   list-style-type: none;
-  padding-left: 0;
-  margin-bottom: 0;
 }
 .pack-list-card .pack-list li {
-  /* background: white; */
-  border-radius: 0.5em;
+  @apply flex justify-start items-center text-black rounded-lg;
   padding: 0.8em;
-  margin-bottom: 1em;
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  color: black;
   min-width: 20em;
   font-weight: 300;
 }
@@ -57,36 +36,11 @@
   justify-content: center;
 }
 
-.pack-list-card .pack-list li:last-child {
-  margin-bottom: 0;
-}
-
 .pack-list-card .pack-list li input:first-child {
-  box-sizing: border-box;
-  width: 1.3em;
-  height: 1.3em;
-  background-color: white;
-  border-radius: 9999px;
+  @apply box-border bg-white outline-none cursor-pointer rounded-full p-2;
   vertical-align: middle;
   -webkit-appearance: none;
-  outline: none;
-  cursor: pointer;
-  margin-right: 1em;
 }
-
-/* .pack-list-card .pack-list li input:checked {
-    background-color: lightgray;
-} */
-
-/* .pack-list-card.red .pack-list li input:checked { background-color: rgb(248, 113, 113); }
-.pack-list-card.blue .pack-list li input:checked { background-color: rgb(96, 165, 250); }
-.pack-list-card.yellow .pack-list li input:checked { background-color: rgb(251, 191, 36); }
-.pack-list-card.green .pack-list li input:checked { background-color: rgb(52, 211, 153); }
-.pack-list-card.gray .pack-list li input:checked { background-color: rgb(156, 163, 175); }
-.pack-list-card.indigo .pack-list li input:checked { background-color: rgb(129, 140, 248); }
-.pack-list-card.purple .pack-list li input:checked { background-color: rgb(167, 139, 250); }
-.pack-list-card.pink .pack-list li input:checked { background-color: rgb(244, 114, 182); } */
-
 
 @media only screen and (max-width: 768px) {
 	/* nav .logo {
