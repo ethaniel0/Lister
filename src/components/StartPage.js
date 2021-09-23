@@ -47,33 +47,32 @@ function StartPage() {
 
   return (
     <>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"></link>
+        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />> */}
         
-        <nav id='desktop-nav' class='flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border'>
-            <span class='flex items-center'>
-                <img src="/images/bilogo.png" alt="logo" class="h-16 mr-4" />
-                <span class='font-medium text-2xl'>Bring It</span>
+        <nav id='desktop-nav' className='flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border'>
+            <span className='flex items-center'>
+                <img src="/images/bilogo.png" alt="logo" className="h-16 mr-4" />
+                <span className='font-medium text-2xl'>Bring It</span>
             </span>
-            <div class='text-2xl'>
+            <div className='text-2xl'>
                 <a href="/">Our Story idk</a>
             </div>
-            <div class='flex items-center'>
-                <a href='/' class='text-blue-500 text-2xl mr-6 cursor-pointer no-underline' onclick='loginModal()'>Login</a>
-                <div class="new-list text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer transition-colors transition-transform duration-500">
-                    <i class="fas fa-plus-circle"></i>
+            <div className='flex items-center'>
+                <a href='/' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</a>
+                <div className="new-list text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer transition-colors transition-transform duration-500">
+                    <i className="fas fa-plus-circle"></i>
                     <Link to="/makeList">New List</Link>
                 </div>
             </div>
         </nav>
 
-        <main class='text-center'>
+        <main className='text-center'>
             <div id="cont" className='flex'>
                 <div className='n1 pl-20 flex items-center flex-grow' style={{height: '70vh', width: '100%'}}>
                     <div>
-                    <h1 className="text-left w-full font-extrabold text-7xl mt-0 mb-4">Bring it.</h1>
+                    <h1 className="text-left w-full font-bold text-7xl mt-0 mb-4">Bring it.</h1>
                     <span className='block mb-16 text-4xl font-thin'>Know you're ready. For<br />Real this time.</span>
                     <div id='title-search-container'>
                         <input id='title-search' type='text' placeholder='Find Your Packing List' className='p-4 border-none block outline-none mb-0' />
