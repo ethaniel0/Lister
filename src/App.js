@@ -1,6 +1,6 @@
 import './App.css';
-import ListMaker from './listMaker/ListMaker';
-import StartPage from './components/StartPage';
+import ListMaker from './ListMaker/ListMaker';
+import StartPage from './StartPage/StartPage';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
 
