@@ -1,8 +1,8 @@
-import './index.css';
-// import './ListMaker.css';
+import './StartPage.css';
 import { useState } from 'react';
 import DemoCard from './DemoCard';
 import { Link } from 'react-router-dom';
+import { FaPlusCircle } from 'react-icons/fa'
 
 function StartPage() {
     const [demo, editDemo] = useState({
@@ -61,9 +61,9 @@ function StartPage() {
             </div>
             <div className='flex items-center'>
                 <a href='/' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</a>
-                <div className="new-list text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer transition-colors transition-transform duration-500">
-                    <i className="fas fa-plus-circle"></i>
-                    <Link to="/makeList">New List</Link>
+                <div className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer transition-colors transition-transform duration-500">
+                    <FaPlusCircle />
+                    <Link to="/makeList" className='inline-block ml-2'>New List</Link>
                 </div>
             </div>
         </nav>

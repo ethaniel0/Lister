@@ -18,7 +18,7 @@ const Card = ({ card, onEdit }) => {
             <div>
                 <ul className='pack-list'>
                     {card.items.map((item, i) => (
-                        <li key={item.id} className='bg-white mb-4'>
+                        <li key={item.id} className={'bg-white' + (i === card.items.length - 1 ? '' : ' mb-4')}>
                             <input type='checkbox' 
                                 checked={item.checked}
                                 onChange={(e) => onEdit(i, e.currentTarget.checked)}
