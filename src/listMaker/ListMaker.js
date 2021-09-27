@@ -29,7 +29,6 @@ function ListMaker() {
     }]);
   }
   const editSection = (sec) => {
-    
     setSections(sections.map(s => s.id === sec.id ? sec : s));
   }
   const deleteSection = (id) => {

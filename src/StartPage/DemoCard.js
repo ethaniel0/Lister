@@ -21,11 +21,13 @@ const Card = ({ card, onEdit }) => {
                         <li key={item.id} className={'bg-white' + (i === card.items.length - 1 ? '' : ' mb-4')}>
                             <input type='checkbox' 
                                 checked={item.checked}
+                                name={'check-' + item.id}
+                                id={'check-' + item.id}
                                 onChange={(e) => onEdit(i, e.currentTarget.checked)}
                                 className={'border-2 border-'+card.color+'-400 rounded-full'}
                                 style={{backgroundColor: item.checked ? colors[card.color] : ""}} />
                         
-                            <span type='text' className='w-full border-0 ml-4 flex flex-wrap'>{item.text}</span>
+                            <label htmlFor={'check-' + item.id} type='text' className='w-full border-0 ml-4 flex flex-wrap'>{item.text}</label>
                         </li>
                     ))}
                 </ul>

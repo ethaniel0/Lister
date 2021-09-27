@@ -15,7 +15,10 @@ const Header = ({ name, setName }) => {
                 src='/images/bilogo.png' 
                 alt="Bringit" 
                 className='absolute top-3 left-2 w-12 filter border-white border-2 rounded-full cursor-pointer' />
-            <img src='/images/pfpic.png' alt="Profile" className='absolute top-3 left-16 w-12' />
+            <img 
+                src='/images/pfpic.png'
+                alt="Profile"
+                className='absolute top-3 left-16 w-12 cursor-pointer' />
         </div>
     )
 }

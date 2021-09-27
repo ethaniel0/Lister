@@ -46,24 +46,20 @@ function StartPage() {
     }
 
   return (
-    <>
-        {/* <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />> */}
-        
+    <>  
         <nav id='desktop-nav' className='flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border'>
             <span className='flex items-center'>
-                <img src="/images/bilogo.png" alt="logo" className="h-16 mr-4" />
+                <img src="/images/bilogo.png" alt="logo" className="h-12 mr-2" />
                 <span className='font-medium text-2xl'>Bring It</span>
             </span>
             <div className='text-2xl'>
-                <a href="/">Our Story idk</a>
+                <Link to="/">Our Story idk</Link>
             </div>
             <div className='flex items-center'>
-                <a href='/' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</a>
-                <div className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer transition-colors transition-transform duration-500">
+                <Link to='/profile' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</Link>
+                <div id="new-list-button" className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer">
                     <FaPlusCircle />
-                    <Link to="/makeList" className='inline-block ml-2'>New List</Link>
+                    <Link to="/makelist" className='inline-block ml-2'>New List</Link>
                 </div>
             </div>
         </nav>
