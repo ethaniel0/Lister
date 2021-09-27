@@ -1,5 +1,5 @@
 import './StartPage.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DemoCard from './DemoCard';
 import { Link } from 'react-router-dom';
 import { FaPlusCircle } from 'react-icons/fa'
@@ -37,7 +37,6 @@ function StartPage() {
             }
         ]
     });
-    const [test, changeTest] = useState("What");
 
     const onEdit = (ind, checked) => {
         console.log(ind);
@@ -45,15 +44,6 @@ function StartPage() {
         d.items[ind].checked = checked;
         editDemo(d);
     }
-
-    useEffect(() => {
-        fetch('/api')
-            .then(res => res.json())
-            .then(json => {
-                changeTest(json.message);
-            })
-        
-    })
 
   return (
     <>  
@@ -63,7 +53,7 @@ function StartPage() {
                 <span className='font-medium text-2xl'>Bring It</span>
             </span>
             <div className='text-2xl'>
-                <Link to="/">{test}</Link>
+                <Link to="/">About Us</Link>
             </div>
             <div className='flex items-center'>
                 <Link to='/profile' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</Link>
