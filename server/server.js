@@ -1,12 +1,9 @@
-const express = require("express");
-
-const PORT = process.env.PORT || 3001;
-
-const app = express();
-app.get('/api', (req, res) => {
-    res.json({message: "hello michael"});
-})
-
-app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+var express = require("express");
+var PORT = process.env.PORT || 3001;
+var app = express();
+app.get('/api', function (req, res) {
+    res.json({ message: "hello michael" });
+});
+app.listen(PORT, function () {
+    console.log("Server listening on " + PORT);
 });

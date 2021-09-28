@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ESNext",
+        "esModuleInterop": true,
+        "watch": true,
+        "moduleResolution": "node",
+        "strict": true,
+        "paths": {
+            "*": [
+                "./node_modules/*"
+            ]
+        }
+    }
+}
