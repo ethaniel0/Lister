@@ -13,12 +13,6 @@ main {
   text-align: center;
 }
 
-/* inner flex div (column) */
-#cont .n1 div {
-  text-align: left;
-  width: 100%;
-}
-
 #example-list {
   min-width: 80%;
   transform: rotate(3deg);
@@ -50,6 +44,95 @@ main {
 #new-list-button:hover {
   @apply bg-blue-600;
   transform: scale(102%);
+}
+
+
+#login-modal {
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+#inner-login-modal {
+  top: -100vh;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+  transition: top 0.4s ease;
+  min-width: 25em;
+}
+#inner-login-modal > div {
+  transition: opacity 0.5s ease, height 0.8s ease;
+}
+#inner-login-modal > div h2{
+  text-align: center;
+  font-weight: 400;
+  color: rgb(15, 128, 0);
+  line-height: 1.5em;
+}
+#inner-login-modal > div > span:first-child {
+  font-size: 2em;
+  font-weight: 500;
+  margin-bottom: 1em;
+  margin-left: 0;
+}
+#inner-login-modal span {
+  display: block;
+  font-size: 1em;
+  margin-left: 1em;
+  font-weight: 500;
+  margin-bottom: 0.5em;
+}
+#inner-login-modal input {
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+  -webkit-appearance: none;
+  padding: 1rem;
+  font-size: 1.1em;
+  border-radius: 1.5em;
+  border: none;
+  display: block;
+  width: 100%;
+  outline: none;
+  transition: box-shadow 1s ease;
+  margin-bottom: 1em;
+}
+#login-signin {
+  text-align: right;
+  width: 100%;
+  margin: 0 !important;
+  font-size: 0.9em;
+}
+#login-signin a {
+  color: blue;
+  cursor: pointer;
+}
+
+#login-submit {
+  font-size: 1.2em;
+  color: white;
+  background: #1E90FF;
+  padding: 0.5em 0.8em;
+  border-radius: 1.5em;
+  border: none;
+  cursor: pointer; 
+  margin-bottom: 0.5em;
+  min-width: 30%;
+  transition: background 0.5s ease, transform 0.5s ease;
+}
+#login-submit:hover {
+  background: rgb(26, 124, 223);
+  transform: scale(1.025);
+}
+
+#login-error {
+  color: red;
+  font-size: 0.9em !important;
+}
+
+@keyframes modalBackg {
+  0% {
+    filter: blur(0);
+  }
+  100% {
+    filter: blur(10px);
+  }
 }
 
 @media only screen and (max-width: 768px) {
