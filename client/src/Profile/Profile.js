@@ -1,46 +1,68 @@
 import Header from './Header'
 import { FaPlus } from 'react-icons/fa'
 import './Profile.css';
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react';
 
 const Profile = ({ lists, makeList, savedLists }) => {
+    const { uid } = useParams();
     const history = useHistory();
-    const tempId = () => Math.floor(Math.random() * 100000);
+    const [profile, setProfile] = useState({
+        name: "Duke University",
+        personalLists: [],
+        profPic: "/images/pfpic.png",
+        topPic: "https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg",
+        owner: false
+    })
     const newList = () => {
-        let id = tempId();
-        let add = {
-            id: id,
-            name: "New List",
-            image: "https://cdn-icons-png.flaticon.com/512/149/149347.png"
-        };
-        makeList(add);
-        history.push("/makelist");
+        fetch('/api/newList/' + uid,
+        { method: 'POST' }).then(resp => resp.json()).then(json => {
+            console.log(json);
+            if (json.success) history.push('/makeList/' + uid + '/' + json.success);
+        })
+    }
+    useEffect(() => {
+        let isMounted = true;
+        fetch('/api/profile/' + uid).then(res => res.json()).then(json => {
+            if (json.error) return history.push('/');
+            if (isMounted) setProfile(json);
+        });
+        return () => { isMounted = false };
+    }, [])
+
+    const goToList = (listid) => {
+        if (profile.owner){
+            history.push(`/makeList/${uid}/${listid}`)
+        }
     }
     
     return (
         <>
-            <Header />
+            <Header name={profile.name} profPic={profile.profPic} topPic={profile.topPic} />
             <main className='text-center mt-8'>
                 <h2 className='text-3xl'>My Lists</h2>
-                <div id="lists" class='p-5 flex justify-center'>
+                <div id="lists" className='p-5 flex justify-center'>
                     {
-                        lists.map((list) => (
-                            <div style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
+                        profile.personalLists.map((list) => (
+                            <div key={list.id} onClick={() => goToList(list.id)} style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
                                 <span className='bg-white w-full p-1 bg-opacity-60 text-xl'>{list.name}</span>
                             </div>
                         ))
                     }
-                    <div onClick={newList} className="listDiv w-60 h-60 border-2 border-dotted shadow-lg p-2 flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-200  transition-colors duration-300 cursor-default">
-                            <FaPlus className="block text-5xl mb-4 text-gray-500" />
-                            <span className="text-2xl text-gray-400">New List</span>
-                    </div>
+                    {
+                        profile.owner &&
+                        <div onClick={newList} className="listDiv w-60 h-60 border-2 border-dotted shadow-lg p-2 flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-200  transition-colors duration-300 cursor-default">
+                                <FaPlus className="block text-5xl mb-4 text-gray-500" />
+                                <span className="text-2xl text-gray-400">New List</span>
+                        </div>
+                    }
                 </div>
 
                 <h2 className='text-3xl'>Saved Lists</h2>
-                <div id="lists" class='p-5 flex justify-center'>
+                <div id="lists" className='p-5 flex justify-center'>
                     {
                         savedLists.map((list) => (
-                            <div style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
+                            <div key={list.id} style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
                                 <span className='bg-white w-full p-1 bg-opacity-60 text-xl'>{list.name}</span>
                             </div>
                         ))

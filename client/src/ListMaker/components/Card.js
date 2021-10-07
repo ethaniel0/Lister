@@ -12,7 +12,7 @@ const Card = ({ card, onEdit, onDelete }) => {
     
     const editHeader = (text => {
         myCard.name = text;
-        onEdit(myCard);
+        onEdit(myCard.id, 'name', text, myCard);
     });
     const addItem = (ind) => {
         if (ind === undefined) ind = myCard.items.length;
@@ -24,7 +24,7 @@ const Card = ({ card, onEdit, onDelete }) => {
         
         myCard.items.splice(ind+1, 0, item);
         changeNewInd(ind+1);
-        onEdit(myCard);
+        onEdit(myCard.id, 'item', null, myCard);
     }
     const editItem = (id, text, checked) => {
         myCard.items = myCard.items.map(i => i.id === id ? {id: id, text: text, checked: checked} : i)
@@ -36,7 +36,7 @@ const Card = ({ card, onEdit, onDelete }) => {
     }
     const editColor = (color) => {
         myCard.color = color;
-        onEdit(myCard);
+        onEdit(myCard.id, 'color', color, myCard);
     }
     
     return (

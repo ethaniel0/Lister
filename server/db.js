@@ -24,13 +24,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateList = exports.getList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.deleteSection = exports.editSection = exports.newSection = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
 // const admin = require("firebase-admin");
 admin.initializeApp({
-    credential: admin.credential.cert('./credentials.json'),
+    credential: admin.credential.cert('server/credentials.json'),
     storageBucket: `bringit-a32a6.appspot.com`
 });
 const Db = admin.firestore();
@@ -77,13 +77,13 @@ function makeUser(email, name, password, payType, acctType, creditcard) {
         listProgress: {},
         name: name,
         password: hash,
-        personalLists: {},
-        personalTemplates: {},
+        personalLists: [],
+        personalTemplates: [],
         plan: payType,
         profPic: "",
         salt: salt,
-        savedLists: {},
-        savedTemplates: {},
+        savedLists: [],
+        savedTemplates: [],
         timeLastPaid: admin.firestore.Timestamp.fromDate(new Date()),
         topPic: "",
         type: acctType
@@ -91,7 +91,7 @@ function makeUser(email, name, password, payType, acctType, creditcard) {
 }
 function makeList(name, owner, password) {
     return {
-        image: "",
+        image: "https://cdn-icons-png.flaticon.com/512/149/149347.png",
         name: name,
         owner: owner,
         password: password || "",
@@ -151,6 +151,14 @@ async function getUserProfile(uid) {
     return null;
 }
 exports.getUserProfile = getUserProfile;
+async function getUserList(uid, listid) {
+    let user = await getUserProfile(uid);
+    if (user === null)
+        return null;
+    let list = user.personalLists.find(e => e.id === listid);
+    return list || null;
+}
+exports.getUserList = getUserList;
 async function getList(id, viewable, isTemplate) {
     let col = viewable ? isTemplate ? PbTemplates : PbLists : isTemplate ? PvTemplates : PvLists;
     let list = await col.doc(id).get();
@@ -159,47 +167,56 @@ async function getList(id, viewable, isTemplate) {
     return null;
 }
 exports.getList = getList;
-async function updateList(listid, action, type, ids, viewable) {
-    let Lists = viewable ? PbLists : PvLists;
-    if (action == 'add') {
-        let update = {}; // add either a section or option to a section
-        if (type == 'section')
-            update[`sections.${ids[0]}`] = { items: {}, name: ids[1] };
-        else if (type == 'option')
-            update[`sections.${ids[0]}.items.${ids[1]}`] = ids[2];
-        else
-            return false;
-        await Lists.doc(listid).update(update);
-        return true;
-    }
-    else if (action == 'delete') {
-        let update = {}; // delete a section or option of a section
-        if (type == 'section')
-            update[`sections.${ids[0]}`] = FieldValue.delete();
-        else if (type == 'option')
-            update[`sections.${ids[0]}.items.${ids[2]}`] = FieldValue.delete();
-        else
-            return false;
-        await Lists.doc(listid).update(update);
-        return true;
-    }
-    else if (action == 'update') {
-        let update = {}; // update the name of the list or a section or update the text of an option
-        if (type == 'list')
-            update['name'] = ids[0];
-        else if (type == 'section')
-            update[`sections.${ids[0]}.name`] = ids[1];
-        else if (type == 'option')
-            update[`sections.${ids[0]}.items.${ids[1]}`] = ids[2];
-        else
-            return false;
-        await Lists.doc(listid).update(update);
-        return true;
-    }
-    else
-        return false;
+async function newSection(uid, listid, index, color) {
+    let ul = await getUserList(uid, listid);
+    if (!ul)
+        return {};
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let update = {}; // add either a section or option to a section
+    let id = makeID(8);
+    let tid = makeID(8);
+    let items = {};
+    items[tid] = { index: 0, text: "", id: tid };
+    update[`sections.${id}`] = { id, color, index, items: items, name: "New Section" };
+    await Lists.doc(listid).update(update);
+    return { id, tid };
 }
-exports.updateList = updateList;
+exports.newSection = newSection;
+async function editSection(uid, listid, sid, field, value) {
+    let ul = await getUserList(uid, listid);
+    if (!ul)
+        return false;
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let update = {};
+    update[`sections.${sid}.${field}`] = value;
+    await Lists.doc(listid).update(update);
+    return true;
+}
+exports.editSection = editSection;
+async function deleteSection(uid, listid, sid) {
+    let ul = await getUserList(uid, listid);
+    if (!ul)
+        return false;
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let list = await getList(listid, ul.viewable, false);
+    if (list === null)
+        return false;
+    delete list.sections[sid];
+    let secs = Object.values(list.sections);
+    secs.sort((a, b) => a.index - b.index);
+    let updSecs = {};
+    for (let i = 0; i < secs.length; i++) {
+        secs[i].index = i;
+        updSecs[secs[i].id] = secs[i];
+    }
+    let update = {
+        sections: updSecs
+    };
+    update[`sections`] = updSecs;
+    await Lists.doc(listid).update(update);
+    return true;
+}
+exports.deleteSection = deleteSection;
 async function saveNewUser(email, name, password, payType, acctType, creditcard) {
     let user = makeUser(email, name, password, payType, acctType, creditcard);
     var res;
@@ -223,18 +240,22 @@ exports.saveTemplate = saveTemplate;
 async function saveList(name, uid, password) {
     let list = makeList(name, uid, password);
     let res = await PvLists.add(list);
-    let upd = {}; // UserList to be added (update)
-    upd[res.id] = {
+    let upd = {
+        id: res.id,
         saveDate: list.saveDate,
         viewable: false
     };
     let user = await Organizations.doc(uid).get();
     if (user.exists)
-        await Organizations.doc(uid).update({ personalLists: upd });
+        await Organizations.doc(uid).update({
+            personalLists: admin.firestore.FieldValue.arrayUnion(upd)
+        });
     else {
         user = await Users.doc(uid).get();
         if (user.exists)
-            await Users.doc(uid).update({ personalLists: upd });
+            await Users.doc(uid).update({
+                personalLists: admin.firestore.FieldValue.arrayUnion(upd)
+            });
     }
     return res;
 }

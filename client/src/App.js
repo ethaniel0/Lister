@@ -23,8 +23,8 @@ function App() {
     <Router>
       <Switch>
         <Route exact path='/' component={StartPage}></Route>
-        <Route exact path='/makelist' component={ListMaker} />
-        <Route exact path='/profile'><Profile lists={lists} makeList={addList} /></Route>
+        <Route exact path='/makelist/:uid/:listid' component={ListMaker} />
+        <Route exact path='/profile/:uid'><Profile lists={lists} makeList={addList} /></Route>
       </Switch>
     </Router>
     
