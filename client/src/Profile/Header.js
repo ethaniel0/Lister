@@ -4,7 +4,7 @@ const Header = ({ name, profPic, topPic }) => {
     // console.log('pic:', topPic);
     const history = useHistory();
     return (
-        <div style={{backgroundImage: ('url(' + topPic + ')'), backgroundSize: 'cover'}} className="h-32 w-full  flex justify-center relative">
+        <div style={{backgroundImage: ('url(' + topPic + ')'), backgroundSize: 'cover', backgroundPosition: 'center'}} className="h-32 w-full  flex justify-center relative">
             <div style={{fontFamily: 'Oregano'}}
                  className='bg-white absolute bottom-0 px-12 text-4xl pt-3 rounded-t-3xl'>
                     {name}

@@ -1,30 +1,19 @@
 import './App.css';
-import ListMaker from './ListMaker/ListMaker';
 import StartPage from './StartPage/StartPage';
 import Profile from './Profile/Profile';
+import ListViewer from './ListViewer/ListViewer';
+import ListMaker from './ListMaker/ListMaker';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import { useState } from 'react'
-
 
 function App() {
-  const [lists, updateLists] = useState([
-    {
-      id: 1,
-      name: "something",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Duke_Athletics_logo.svg/1200px-Duke_Athletics_logo.svg.png"
-    }
-  ])
-
-  const addList = (newList) => {
-    updateLists([...lists, newList])
-  }
 
   return (
     <Router>
       <Switch>
         <Route exact path='/' component={StartPage}></Route>
+        <Route exact path='/list/:uid/:listid' component={ListViewer} />
         <Route exact path='/makelist/:uid/:listid' component={ListMaker} />
-        <Route exact path='/profile/:uid'><Profile lists={lists} makeList={addList} /></Route>
+        <Route exact path='/profile/:uid' component={Profile}></Route>
       </Switch>
     </Router>
     

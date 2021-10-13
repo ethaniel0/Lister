@@ -9,6 +9,8 @@ import Card from './components/Card';
 function ListMaker() {
   const [sections, setSections] = useState([]);
   const [listName, setListName] = useState("Name");
+  const [topPic, setTopPic] = useState("https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg");
+  const [profPic, setProfPic] = useState('/images/pfpic.png');
   const history = useHistory();
   const { uid, listid } = useParams();
 
@@ -16,10 +18,11 @@ function ListMaker() {
     let isMounted = true;
     fetch('/api/list/' + listid).then(res => res.json()).then(json => {
         if (json.error) return history.push('/');
-        console.log(json);
         if (json.owner === false) return history.push('/');
         if (isMounted){
           setListName(json.name);
+          setProfPic(json.profPic);
+          setTopPic(json.topPic);
           let secs = Object.keys(json.sections).map(k => json.sections[k]);
           secs.sort((a, b) => a.index - b.index);
           for (let o of secs){
@@ -27,12 +30,22 @@ function ListMaker() {
             items.sort((a, b) => a.index - b.index);
             o.items = items;
           }
-          console.log(secs);
           setSections(secs);
         }
     });
     return () => { isMounted = false };
-}, [])
+}, [history, listid]);
+
+  const editName = (name) => {
+    setListName(name);
+    fetch(`/api/edit/${uid}/${listid}/editListName`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
+    });
+  }
 
   const addSection = () => {
     let randColor = ['red', 'blue', 'yellow', 'green', 'gray', 'indigo', 'purple', 'pink'][Math.floor(Math.random() * 8)];
@@ -61,8 +74,6 @@ function ListMaker() {
   const editSection = (sid, field, value, sec) => {
     let old = sections;
     setSections(sections.map(s => s.id === sec.id ? sec : s));
-    if (field === 'item')
-      return 
     fetch(`/api/edit/${uid}/${listid}/editSection`, {
         method: 'POST',
         headers: {
@@ -75,6 +86,7 @@ function ListMaker() {
         }
       })
   }
+
   const deleteSection = (id) => {
     let old = sections;
     setSections(sections.filter(s => s.id !== id));
@@ -91,7 +103,33 @@ function ListMaker() {
       })
   }
 
-  const editItem = (sid, tid, field, value, sec) => {
+  const addItem = async (sid, ind, sec) => {
+    let old = sections;
+    if (ind === undefined) ind = sec.items.length-1;
+    let item = {
+      id: "-", // json.success is the item id
+      text: "",
+      checked: false,
+      index: sec.items.length
+    };
+    sec.items.splice(ind+1, 0, item);
+    setSections(sections.map(s => s.id === sec.id ? sec : s));
+    fetch(`/api/edit/${uid}/${listid}/addItem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sid, ind: ind+1 })
+      }).then(res => res.json()).then(json => {
+        if (!json.success){ // if it didn't work, revert
+          return setSections(old);
+        }
+        sec.items[ind+1].id = json.success;
+        setSections(sections.map(s => s.id === sec.id ? sec : s));
+      })
+  }
+
+  const editItem = (sid, tid, value, sec) => {
     let old = sections;
     setSections(sections.map(s => s.id === sec.id ? sec : s));
     fetch(`/api/edit/${uid}/${listid}/editItem`, {
@@ -99,7 +137,23 @@ function ListMaker() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({sid, tid, field, value})
+        body: JSON.stringify({sid, tid, value})
+      }).then(res => res.json()).then(json => {
+        if (!json.success){
+          setSections(old);
+        }
+      })
+  }
+
+  const deleteItem = (sid, tid, sec) => {
+    let old = sections;
+    setSections(sections.map(s => s.id === sec.id ? sec : s));
+    fetch(`/api/edit/${uid}/${listid}/deleteItem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({sid, tid})
       }).then(res => res.json()).then(json => {
         if (!json.success){
           setSections(old);
@@ -109,10 +163,10 @@ function ListMaker() {
 
   return (
     <>
-      <Header name={listName} setName={setListName} />
+      <Header name={listName} setName={editName} profPic={profPic} topPic={topPic} uid={uid} listid={listid} />
       <div className='flex flex-wrap justify-around p-4 mt-8 font-sans'>
         {sections.map((sec) => (
-          <Card key={sec.id} card={sec} onEdit={editSection} onDelete={deleteSection} />
+          <Card key={sec.id} card={sec} onEdit={editSection} onAdd={addItem} onItemEdit={editItem} onDeleteItem={deleteItem} onDelete={deleteSection} />
         ))}
         <AddSection onAdd={addSection} />
       </div>

@@ -31,11 +31,9 @@ export interface Creditcard {
   cvv: string;
   number: string;
 }
-
 interface TypedObject<T> {
   [key: string]: T
 }
-
 interface ListProgress {
   [key: string]: {
     [key: string]: {
@@ -43,13 +41,11 @@ interface ListProgress {
     }
   }
 }
-
 interface ListItem {
     id: string;
     index: number;
     text: string;
 }
-
 interface ListSection {
     id: string;
     index: number;
@@ -59,9 +55,9 @@ interface ListSection {
       [key: string]: ListItem
     };
 }
-
 export interface List {
   image: string;
+  topImage: string;
   name: string;
   owner: string;
   password: string;
@@ -71,13 +67,11 @@ export interface List {
   }
   id?: string;
 }
-
 export interface UserList {
     id: string;
     saveDate: admin.firestore.Timestamp;
     viewable: boolean;
 }
-
 export interface User {
   creditDetails: Creditcard;
   email: string;
@@ -96,7 +90,6 @@ export interface User {
   topPic: string;
   type: boolean;
 }
-
 export interface UserDoc {
   id: string;
   user: User;
@@ -146,10 +139,10 @@ function makeUser(email: string, name: string, password: string, payType: string
     type: acctType
   };
 }
-
 function makeList(name: string, owner: string, password: string): List{
   return {
     image: "https://cdn-icons-png.flaticon.com/512/149/149347.png",
+    topImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Solid_green_%2880B682%29.svg/512px-Solid_green_%2880B682%29.svg.png",
     name: name,
     owner: owner,
     password: password || "",
@@ -157,10 +150,10 @@ function makeList(name: string, owner: string, password: string): List{
     sections: {}
   };
 }
-
 function makeTemplate(name:string, owner:string, password:string): List{
   return {
     image: "",
+    topImage: "",
     name: name,
     owner: owner,
     password: password || "",
@@ -221,8 +214,12 @@ export async function getList(id: string, viewable: boolean, isTemplate: boolean
   return null;
 }
 
-export async function newSection(uid: string, listid: string, index: number, color: string): Promise<TypedObject<string>>{
-  let ul = await getUserList(uid, listid);
+export function changeListName(ul: UserList, listid: string, name: string){
+  let Lists = ul.viewable ? PbLists : PvLists;
+  Lists.doc(listid).update({ name });
+}
+
+export async function newSection(ul: UserList, listid: string, index: number, color: string): Promise<TypedObject<string>>{
   if (!ul) return {};
   let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {}; // add either a section or option to a section
@@ -231,25 +228,22 @@ export async function newSection(uid: string, listid: string, index: number, col
   let items: TypedObject<ListItem> = {};
   items[tid] = { index: 0, text: "", id: tid };
   update[`sections.${id}`] = { id, color, index, items: items, name: "New Section" };
-  await Lists.doc(listid).update(update);
+  Lists.doc(listid).update(update);
   return {id, tid};
 }
-export async function editSection(uid: string, listid: string, sid: string, field: string, value: any): Promise<boolean>{
-  let ul = await getUserList(uid, listid);
+export async function editSection(ul: UserList, listid: string, sid: string, field: string, value: any): Promise<boolean>{
   if (!ul) return false;
   let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {};
   update[`sections.${sid}.${field}`] = value;
-  await Lists.doc(listid).update(update);
+  Lists.doc(listid).update(update);
   return true;
 }
-export async function deleteSection(uid: string, listid: string, sid: string): Promise<boolean>{
-  let ul = await getUserList(uid, listid);
+export async function deleteSection(ul: UserList, list: List | null, listid: string, sid: string): Promise<boolean>{
   if (!ul) return false;
   let Lists = ul.viewable ? PbLists : PvLists;
   
-  let list: List | null = await getList(listid, ul.viewable, false);
-  if (list === null) return false;
+  if (list === null || !(sid in list.sections)) return false;
   delete list.sections[sid];
   let secs = Object.values(list.sections);
   secs.sort((a, b) => a.index - b.index);
@@ -269,6 +263,60 @@ export async function deleteSection(uid: string, listid: string, sid: string): P
   return true;
 }
 
+export async function newItem(ul: UserList | null, list: List | null, listid: string, sid: string, index: number): Promise<string>{
+  if (!ul || list === null) return '';
+  let Lists = ul.viewable ? PbLists : PvLists;
+  let update: any = {}; // add either a section or option to a section
+  let tid: string = makeID(8);
+  let items = Object.values(list.sections[sid].items);
+  items.sort((a, b) => a.index - b.index);
+  let newItems = [];
+  let ind = 0;
+  for (let i of items){
+    if (i.index === index) newItems.push({ id: tid, index: ind++, text: "" })
+    i.index = ind++;
+    newItems.push(i);
+  }
+  if (newItems.length == items.length) newItems.push({ id: tid, index: ind, text: "" });
+  let upd: TypedObject<ListItem> = {};
+  for (let i of newItems) upd[i.id] = i;
+
+  update[`sections.${sid}.items`] = upd;
+  Lists.doc(listid).update(update);
+  return tid;
+}
+export async function editItem(uid: string, listid: string, sid: string, tid: string, text: string): Promise<TypedObject<string>>{
+  let ul = await getUserList(uid, listid);
+  if (!ul) return {};
+  let Lists = ul.viewable ? PbLists : PvLists;
+  let update: any = {}; // add either a section or option to a section
+  update[`sections.${sid}.items.${tid}.text`] = text;
+  await Lists.doc(listid).update(update);
+  return {tid};
+}
+export async function deleteItem(uid: string, listid: string, sid: string, tid: string): Promise<boolean>{
+  let ul = await getUserList(uid, listid);
+  if (!ul) return false;
+  let Lists = ul.viewable ? PbLists : PvLists;
+  
+  let list: List | null = await getList(listid, ul.viewable, false);
+  if (list === null || !(sid in list.sections) || !(tid in list.sections[sid].items)) return false;
+  delete list.sections[sid].items[tid];
+  let items = Object.values(list.sections[sid].items);
+  items.sort((a, b) => a.index - b.index);
+
+  let updItems: TypedObject<ListItem> = {};
+  for (let i = 0; i < items.length; i++){
+    items[i].index = i;
+    updItems[items[i].id] = items[i];
+  }
+
+  let update: any = {};
+  
+  update[`sections.${sid}.items`] = updItems;
+  await Lists.doc(listid).update(update);
+  return true;
+}
 
 export async function saveNewUser(email: string, name: string, password: string, payType: string, acctType: boolean, creditcard: Creditcard): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | undefined> {
   let user: User = makeUser(email, name, password, payType, acctType, creditcard);
@@ -326,7 +374,7 @@ export async function getSession(uid: string, password: string): Promise<string>
   else return "";
 }
 
-export async function checkUserCookie(uid: string, session: string): Promise<UserDoc | boolean> {
+export async function checkUserCookie(uid: string, session: string): Promise<UserDoc | false> {
   let user: UserDoc[] = await getUser({'.id': uid}, false);
 	return (user.length > 0 && user[0].user.session == session) ? user[0] : false;
 }

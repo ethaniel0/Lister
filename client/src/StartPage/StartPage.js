@@ -1,11 +1,11 @@
 import './StartPage.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DemoCard from './DemoCard';
 import Header from './Header';
 
 
 
-function StartPage({ user }) {
+function StartPage() {
     const [demo, editDemo] = useState({
         id: 1,
         name: "Packing List",
@@ -40,6 +40,9 @@ function StartPage({ user }) {
     });
 
     const [modal, showModal] = useState(false);
+    const [loggedIn, setLogged] = useState(false);
+    const [name, setName] = useState("");
+    const [uid, setUid] = useState("");
 
     const onEdit = (ind, checked) => {
         console.log(ind);
@@ -48,9 +51,25 @@ function StartPage({ user }) {
         editDemo(d);
     }
 
+    useEffect(() => {
+        let isMounted = true;
+        console.log('fetching');
+        fetch('/testsession').then(res => res.json()).then(json => {
+            console.log(json);
+            if (isMounted && !('error' in json)){
+                console.log('logged in');
+                let { name, uid } = json;
+                setName(name);
+                setUid(uid);
+                setLogged(true);
+            }
+        });
+        return () => { isMounted = false };
+    }, [])
+
   return (
     <>  
-        <Header user={user} showModal={modal} setModal={showModal} />
+        <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} />
         
         <main className='text-center transition duration-300' style={{filter: (modal ? "blur(10px)" : 'blur(0)')}}>
             <div id="cont" className='flex'>

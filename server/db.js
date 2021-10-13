@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.deleteSection = exports.editSection = exports.newSection = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -92,6 +92,7 @@ function makeUser(email, name, password, payType, acctType, creditcard) {
 function makeList(name, owner, password) {
     return {
         image: "https://cdn-icons-png.flaticon.com/512/149/149347.png",
+        topImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Solid_green_%2880B682%29.svg/512px-Solid_green_%2880B682%29.svg.png",
         name: name,
         owner: owner,
         password: password || "",
@@ -102,6 +103,7 @@ function makeList(name, owner, password) {
 function makeTemplate(name, owner, password) {
     return {
         image: "",
+        topImage: "",
         name: name,
         owner: owner,
         password: password || "",
@@ -167,8 +169,12 @@ async function getList(id, viewable, isTemplate) {
     return null;
 }
 exports.getList = getList;
-async function newSection(uid, listid, index, color) {
-    let ul = await getUserList(uid, listid);
+function changeListName(ul, listid, name) {
+    let Lists = ul.viewable ? PbLists : PvLists;
+    Lists.doc(listid).update({ name });
+}
+exports.changeListName = changeListName;
+async function newSection(ul, listid, index, color) {
     if (!ul)
         return {};
     let Lists = ul.viewable ? PbLists : PvLists;
@@ -178,28 +184,25 @@ async function newSection(uid, listid, index, color) {
     let items = {};
     items[tid] = { index: 0, text: "", id: tid };
     update[`sections.${id}`] = { id, color, index, items: items, name: "New Section" };
-    await Lists.doc(listid).update(update);
+    Lists.doc(listid).update(update);
     return { id, tid };
 }
 exports.newSection = newSection;
-async function editSection(uid, listid, sid, field, value) {
-    let ul = await getUserList(uid, listid);
+async function editSection(ul, listid, sid, field, value) {
     if (!ul)
         return false;
     let Lists = ul.viewable ? PbLists : PvLists;
     let update = {};
     update[`sections.${sid}.${field}`] = value;
-    await Lists.doc(listid).update(update);
+    Lists.doc(listid).update(update);
     return true;
 }
 exports.editSection = editSection;
-async function deleteSection(uid, listid, sid) {
-    let ul = await getUserList(uid, listid);
+async function deleteSection(ul, list, listid, sid) {
     if (!ul)
         return false;
     let Lists = ul.viewable ? PbLists : PvLists;
-    let list = await getList(listid, ul.viewable, false);
-    if (list === null)
+    if (list === null || !(sid in list.sections))
         return false;
     delete list.sections[sid];
     let secs = Object.values(list.sections);
@@ -217,6 +220,65 @@ async function deleteSection(uid, listid, sid) {
     return true;
 }
 exports.deleteSection = deleteSection;
+async function newItem(ul, list, listid, sid, index) {
+    if (!ul || list === null)
+        return '';
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let update = {}; // add either a section or option to a section
+    let tid = makeID(8);
+    let items = Object.values(list.sections[sid].items);
+    items.sort((a, b) => a.index - b.index);
+    let newItems = [];
+    let ind = 0;
+    for (let i of items) {
+        if (i.index === index)
+            newItems.push({ id: tid, index: ind++, text: "" });
+        i.index = ind++;
+        newItems.push(i);
+    }
+    if (newItems.length == items.length)
+        newItems.push({ id: tid, index: ind, text: "" });
+    let upd = {};
+    for (let i of newItems)
+        upd[i.id] = i;
+    update[`sections.${sid}.items`] = upd;
+    Lists.doc(listid).update(update);
+    return tid;
+}
+exports.newItem = newItem;
+async function editItem(uid, listid, sid, tid, text) {
+    let ul = await getUserList(uid, listid);
+    if (!ul)
+        return {};
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let update = {}; // add either a section or option to a section
+    update[`sections.${sid}.items.${tid}.text`] = text;
+    await Lists.doc(listid).update(update);
+    return { tid };
+}
+exports.editItem = editItem;
+async function deleteItem(uid, listid, sid, tid) {
+    let ul = await getUserList(uid, listid);
+    if (!ul)
+        return false;
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let list = await getList(listid, ul.viewable, false);
+    if (list === null || !(sid in list.sections) || !(tid in list.sections[sid].items))
+        return false;
+    delete list.sections[sid].items[tid];
+    let items = Object.values(list.sections[sid].items);
+    items.sort((a, b) => a.index - b.index);
+    let updItems = {};
+    for (let i = 0; i < items.length; i++) {
+        items[i].index = i;
+        updItems[items[i].id] = items[i];
+    }
+    let update = {};
+    update[`sections.${sid}.items`] = updItems;
+    await Lists.doc(listid).update(update);
+    return true;
+}
+exports.deleteItem = deleteItem;
 async function saveNewUser(email, name, password, payType, acctType, creditcard) {
     let user = makeUser(email, name, password, payType, acctType, creditcard);
     var res;

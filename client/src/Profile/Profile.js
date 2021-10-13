@@ -4,7 +4,7 @@ import './Profile.css';
 import { useHistory, useParams } from "react-router-dom";
 import { useEffect, useState } from 'react';
 
-const Profile = ({ lists, makeList, savedLists }) => {
+const Profile = ({ savedLists }) => {
     const { uid } = useParams();
     const history = useHistory();
     const [profile, setProfile] = useState({
@@ -28,12 +28,10 @@ const Profile = ({ lists, makeList, savedLists }) => {
             if (isMounted) setProfile(json);
         });
         return () => { isMounted = false };
-    }, [])
+    }, [history, uid]);
 
     const goToList = (listid) => {
-        if (profile.owner){
-            history.push(`/makeList/${uid}/${listid}`)
-        }
+        history.push(`/list/${uid}/${listid}`);
     }
     
     return (

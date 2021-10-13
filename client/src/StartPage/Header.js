@@ -3,7 +3,7 @@ import { FaPlusCircle } from 'react-icons/fa'
 import { useState } from 'react';
 import { useHistory } from "react-router-dom";
 
-const Header = ({ user, showModal, setModal }) => {
+const Header = ({ showModal, setModal, logged, name, uid }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [valPassword, setValPassword] = useState(false);
@@ -48,9 +48,9 @@ const Header = ({ user, showModal, setModal }) => {
                 </div>
                 <div className='flex items-center'>
                     {
-                        user == null 
+                        !logged 
                         ? <span onClick={() => setModal(true)} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</span>
-                        : <Link to={'/profile' + user.id} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{user.name}</Link>
+                        : <Link to={'/profile/' + uid} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{name}</Link>
                     }
                     
                     <div id="new-list-button" className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer">
