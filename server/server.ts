@@ -1,7 +1,8 @@
 import express from "express";
 const cookieParser = require('cookie-parser');
 import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, UserDoc, getSession, 
-		saveList, checkUserCookie, changeListName, newSection, editSection, deleteSection, newItem, editItem, deleteItem} from "./db.js";
+		saveList, checkUserCookie, changeListName, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
+		updateUserProgress} from "./db.js";
 
 const PORT = process.env.PORT || 3001;
 
@@ -83,18 +84,36 @@ app.get('/api/profile/:uid', async (req, res) => {
 app.get('/api/list/:listid', async (req, res) => {
 	let { listid } = req.params;
 	let id = req.cookies['id'];
+	let uid = req.cookies['uid'];
 	let list: List | null = await getList(listid, true, false);
 	if (!list) list = await getList(listid, false, false) as List;
 	let user: User | null = await getUserProfile(list.owner);
 	let session = (user === null) ? "" : user.session;
-	res.json({
+	let ret = {
 		name: list.name, 
 		sections: list.sections,
 		profPic: user?.profPic,
 		topPic: list.topImage,
-		owner: session === id
-	});
+		owner: session === id,
+		checks: {}
+	};
+	if (user != null && session === id && id && uid) ret.checks = (user as User).listProgress[listid];
+	
+	res.json(ret);
 });
+app.get('/api/viewer/:listid/getChecks', async (req, res) => {
+	let session = req.cookies['id'];
+	let uid = req.cookies['uid'];
+	
+	if (!session || !uid) return res.json({});
+	let { listid } = req.params;
+
+	let users: UserDoc[] = await getUser({'.id': uid}, false);
+	if (users.length == 0) return res.json({});
+	let user = users[0].user;
+	if (user.session != session) return res.json({});
+	return res.json(user.listProgress[listid]);
+})
 app.get('/logout', (req, res) => {
 
 });
@@ -190,6 +209,24 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
 	if (!worked) return res.json({'error': 'Error deleting section'});
 	return res.json({'success': worked});
 })
+app.post('/api/viewer/:listid/checkItem', async (req, res) => {
+	let session = req.cookies['id'];
+	let uid = req.cookies['uid'];
+
+	if (!session || !uid) return res.json({"error": ''});
+	let { listid } = req.params;
+	let { sid, tid, checked } = req.body;
+
+	let users: UserDoc[] = await getUser({'.id': uid}, false);
+	if (users.length == 0) return res.json({"error": ''});
+	let user = users[0].user;
+	if (user.session != session) return res.json({"error": ''});
+
+	await updateUserProgress(uid, listid, sid, tid, checked);
+	return res.json({'success': ''});
+})
+
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);

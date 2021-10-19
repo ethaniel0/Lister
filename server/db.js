@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -279,6 +279,13 @@ async function deleteItem(uid, listid, sid, tid) {
     return true;
 }
 exports.deleteItem = deleteItem;
+async function updateUserProgress(uid, listid, sid, tid, checked) {
+    let upd = {};
+    upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
+    await Users.doc(uid).update(upd);
+    return true;
+}
+exports.updateUserProgress = updateUserProgress;
 async function saveNewUser(email, name, password, payType, acctType, creditcard) {
     let user = makeUser(email, name, password, payType, acctType, creditcard);
     var res;

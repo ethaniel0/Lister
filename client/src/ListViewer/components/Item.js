@@ -19,7 +19,7 @@ const Item = ({ color, id, last, text, checked, onEdit }) => {
                    onChange={(e) => onEdit(id, text, e.currentTarget.checked)}
                    className={'border-2 border-'+color+'-400 rounded-full'}
                    style={{backgroundColor: checked ? colors[color] : ""}} />
-            <label for={id} type='text' className={'outline-none w-full border-0 ml-4 flex flex-wrap font-normal' + (checked ? ' line-through' : '')}>{text}</label>
+            <label htmlFor={id} type='text' className={'outline-none w-full border-0 ml-4 flex flex-wrap font-normal' + (checked ? ' line-through' : '')}>{text}</label>
         </li>
     )
 }

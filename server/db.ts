@@ -75,7 +75,7 @@ export interface UserList {
 export interface User {
   creditDetails: Creditcard;
   email: string;
-  listProgress: TypedObject<ListProgress>;
+  listProgress: ListProgress;
   name: string;
   password: string;
   personalLists: Array<UserList>;
@@ -315,6 +315,13 @@ export async function deleteItem(uid: string, listid: string, sid: string, tid: 
   
   update[`sections.${sid}.items`] = updItems;
   await Lists.doc(listid).update(update);
+  return true;
+}
+
+export async function updateUserProgress(uid: string, listid: string, sid: string, tid: string, checked: boolean): Promise<boolean>{
+  let upd: any = {};
+  upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
+  await Users.doc(uid).update(upd);
   return true;
 }
 

@@ -17,30 +17,43 @@ function ListViewer() {
   useEffect(() => {
     let isMounted = true;
     fetch('/api/list/' + listid).then(res => res.json()).then(json => {
-      console.log(json);
         if (json.error) return history.push('/');
         if (isMounted){
           setListName(json.name);
           setOwner(json.owner);
           setProfPic(json.profPic);
           setTopPic(json.topPic);
+          console.log(json.sections, json.checks);
+
+          for (let skey in json.checks){
+            for (let ikey in json.checks[skey]){
+              json.sections[skey].items[ikey].checked = json.checks[skey][ikey];
+            }
+          }
+
           let secs = Object.keys(json.sections).map(k => json.sections[k]);
           secs.sort((a, b) => a.index - b.index);
           for (let o of secs) o.items = Object.values(o.items).sort((a, b) => a.index - b.index);
+          for (let o of secs) for (let item of o.items) if (!('checked' in item)) item.checked = false;
           setSections(secs);
+
+
+          
         }
     });
+
     return () => { isMounted = false };
 }, [history, listid]);
 
-  const editItem = (sid, checked, sec) => {
+  const editItem = (sid, tid, checked, sec) => {
     setSections(sections.map(s => s.id === sec.id ? sec : s));
+
     fetch(`/api/viewer/${listid}/checkItem`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({sid, checked})
+        body: JSON.stringify({sid, tid, checked})
       });
   }
 

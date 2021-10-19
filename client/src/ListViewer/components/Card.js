@@ -5,7 +5,7 @@ const Card = ({ card, onEdit }) => {
     const myCard = Object.assign({}, card);
     const editItem = (id, text, checked) => {
         myCard.items = myCard.items.map(i => i.id === id ? {id: id, text: text, checked: checked} : i)
-        onEdit(myCard.id, checked, myCard);
+        onEdit(myCard.id, id, checked, myCard);
     }
     
     return (
