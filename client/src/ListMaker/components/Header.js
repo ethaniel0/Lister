@@ -2,7 +2,7 @@ import ContentEditable from 'react-contenteditable';
 import { useHistory } from "react-router-dom";
 import { FaDoorOpen } from 'react-icons/fa';
 
-const Header = ({ name, uid, listid, setName, topPic, profPic }) => {
+const Header = ({ name, uid, listid, setName, topPic, profPic, setTopPic }) => {
     const history = useHistory();
 
     const uploadFile = (e) => {
@@ -12,7 +12,7 @@ const Header = ({ name, uid, listid, setName, topPic, profPic }) => {
         let formData = new FormData();
         formData.append('file', file);
         console.log(formData);
-        fetch('/upload', {
+        fetch(`/api/edit/${uid}/${listid}/uploadTopImage`, {
             method: 'POST',
             body: formData
         })
@@ -22,6 +22,7 @@ const Header = ({ name, uid, listid, setName, topPic, profPic }) => {
                 alert(data.errors);
             }
             else {
+                setTopPic(data.url);
                 console.log(data);
             }
         })
@@ -33,20 +34,20 @@ const Header = ({ name, uid, listid, setName, topPic, profPic }) => {
             <ContentEditable 
                    html={name}
                    onChange={(e) => setName(e.target.value)}
-                   onClick={e => {e.preventDefault(); e.stopPropagation();}}
+                   onClick={e => {e.stopPropagation();}}
                    style={{fontFamily: 'Oregano'}}
                    className='bg-white absolute bottom-0 px-12 text-4xl pt-3 rounded-t-3xl outline-none' />
             <img 
-                onClick={(e) => {e.preventDefault(); e.stopPropagation(); history.push("/")}}
+                onClick={(e) => {e.stopPropagation(); history.push("/")}}
                 src='/images/bilogo.png' 
                 alt="Bringit" 
                 className='absolute top-3 left-2 w-12 border-white border-2 rounded-full cursor-pointer' />
             <img 
                 src={profPic}
-                onClick={(e) => {e.preventDefault(); e.stopPropagation(); history.push("/profile/" + uid)}}
+                onClick={(e) => {e.stopPropagation(); history.push("/profile/" + uid)}}
                 alt="Profile"
                 className='absolute top-3 left-16 w-12 cursor-pointer rounded-full' />
-            <FaDoorOpen onClick={(e) => {e.preventDefault(); e.stopPropagation(); history.push(`/list/${uid}/${listid}`)}} className='absolute right-4 top-4 text-2xl cursor-pointer gear' />
+            <FaDoorOpen onClick={(e) => {e.stopPropagation(); history.push(`/list/${uid}/${listid}`)}} className='absolute right-4 top-4 text-2xl cursor-pointer gear bg-white box-content p-1 rounded-lg border-black border-2' />
         </div>
     )
 }

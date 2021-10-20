@@ -220,6 +220,12 @@ export function changeListName(ul: UserList, listid: string, name: string){
   let Lists = ul.viewable ? PbLists : PvLists;
   Lists.doc(listid).update({ name });
 }
+export function changeListField(ul: UserList, listid: string, field: string, value: string){
+  let Lists = ul.viewable ? PbLists : PvLists;
+  let upd: any = {};
+  upd[field] = value;
+  Lists.doc(listid).update(upd);
+}
 
 export async function newSection(ul: UserList, listid: string, index: number, color: string): Promise<TypedObject<string>>{
   if (!ul) return {};
@@ -371,11 +377,9 @@ export async function saveList(name: string, uid: string, password: string): Pro
 
 export async function uploadImage(name: string, file: fileUpload.UploadedFile, ext: string, callback: Function): Promise<void>{
   file.name = name;
-  // Bucket.upload("", {
-  //   destination: file
-  // });
-  let newFile = Bucket.file(`images/${name}`);
 
+  let newFile = Bucket.file(`images/${name}`);
+  
   newFile.save(file.data, (err) => {
     if (err) {
       console.error(`Error uploading: ${name} with message: ${err.message}`);
@@ -383,7 +387,6 @@ export async function uploadImage(name: string, file: fileUpload.UploadedFile, e
     }
     newFile.makePublic(async () => {
       let url = newFile.publicUrl();
-      console.log('Uploaded file', url);
       callback(url.toString());
     });
   });

@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.uploadImage = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.getSession = exports.uploadImage = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -176,6 +176,13 @@ function changeListName(ul, listid, name) {
     Lists.doc(listid).update({ name });
 }
 exports.changeListName = changeListName;
+function changeListField(ul, listid, field, value) {
+    let Lists = ul.viewable ? PbLists : PvLists;
+    let upd = {};
+    upd[field] = value;
+    Lists.doc(listid).update(upd);
+}
+exports.changeListField = changeListField;
 async function newSection(ul, listid, index, color) {
     if (!ul)
         return {};
@@ -333,9 +340,6 @@ async function saveList(name, uid, password) {
 exports.saveList = saveList;
 async function uploadImage(name, file, ext, callback) {
     file.name = name;
-    // Bucket.upload("", {
-    //   destination: file
-    // });
     let newFile = Bucket.file(`images/${name}`);
     newFile.save(file.data, (err) => {
         if (err) {
@@ -344,7 +348,6 @@ async function uploadImage(name, file, ext, callback) {
         }
         newFile.makePublic(async () => {
             let url = newFile.publicUrl();
-            console.log('Uploaded file', url);
             callback(url.toString());
         });
     });

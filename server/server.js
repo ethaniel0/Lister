@@ -157,10 +157,9 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
     let { uid, listid } = req.params;
     let { name } = req.body;
     let { session, user, ul } = await checkList(req, res, uid, listid);
-    console.log(name, session);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListName)(ul, listid, name);
+    (0, db_js_1.changeListField)(ul, listid, 'name', name);
     return res.json({ 'success': true });
 });
 app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
@@ -231,6 +230,25 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
         return res.json({ 'error': 'Error deleting section' });
     return res.json({ 'success': worked });
 });
+app.post('/api/edit/:uid/:listid/uploadTopImage', (0, express_fileupload_1.default)(), async function (req, res) {
+    if (!req.files || !req.files.file)
+        return res.json({ error: 'image not supplied' });
+    let { uid, listid } = req.params;
+    let { session, user, ul } = await checkList(req, res, uid, listid);
+    if (session === 'error')
+        return res.json({ 'error': user });
+    let file = req.files.file;
+    let id = Math.round(Math.random() * 1e15);
+    let parts = file.name.split('.');
+    let name = id + '.' + parts[parts.length - 1];
+    console.log(name);
+    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+        if (url.length > 0) {
+            (0, db_js_1.changeListField)(ul, listid, 'topImage', url);
+        }
+        res.json({ url });
+    });
+});
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
     let session = req.cookies['id'];
     let uid = req.cookies['uid'];
@@ -246,18 +264,6 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
         return res.json({ "error": '' });
     await (0, db_js_1.updateUserProgress)(uid, listid, sid, tid, checked);
     return res.json({ 'success': '' });
-});
-app.post('/upload', (0, express_fileupload_1.default)(), function (req, res) {
-    if (req.files === undefined)
-        return res.send("");
-    const file = req.files.file;
-    let id = Math.round(Math.random() * 1e15);
-    let parts = file.name.split('.');
-    let name = id + '.' + parts[parts.length - 1];
-    console.log(name);
-    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
-        res.json({ url });
-    });
 });
 app.listen(PORT, () => {
     console.log(`Server listening on ${PORT}`);

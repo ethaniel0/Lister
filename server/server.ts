@@ -2,7 +2,7 @@ import express from "express";
 import fileUpload from 'express-fileupload';
 const cookieParser = require('cookie-parser');
 import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, UserDoc, getSession, 
-		saveList, checkUserCookie, changeListName, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
+		saveList, checkUserCookie, changeListField, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
 		updateUserProgress, uploadImage} from "./db.js";
 
 const PORT = process.env.PORT || 3001;
@@ -151,9 +151,8 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { name } = req.body;
 	let { session, user, ul } = await checkList(req, res, uid, listid);
-	console.log(name, session);
 	if (session === 'error') return res.json({'error': user});
-	changeListName(ul as UserList, listid, name);
+	changeListField(ul as UserList, listid, 'name', name);
 	return res.json({'success': true});
 });
 app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
@@ -211,6 +210,24 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
 	if (!worked) return res.json({'error': 'Error deleting section'});
 	return res.json({'success': worked});
 })
+app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(req, res) {
+	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
+	let { uid, listid } = req.params;
+	let { session, user, ul } = await checkList(req, res, uid, listid);
+	if (session === 'error') return res.json({'error': user});
+	let file = req.files.file as fileUpload.UploadedFile;
+
+	let id = Math.round(Math.random()*1e15);
+	let parts = file.name.split('.');
+	let name = id + '.' + parts[parts.length - 1];
+	console.log(name);
+	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
+		if (url.length > 0){
+			changeListField(ul as UserList, listid, 'topImage', url);
+		}
+		res.json({ url });
+	});
+})
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 	let session = req.cookies['id'];
 	let uid = req.cookies['uid'];
@@ -227,17 +244,7 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 	await updateUserProgress(uid, listid, sid, tid, checked);
 	return res.json({'success': ''});
 })
-app.post('/upload', fileUpload(), function(req, res) {
-	if (req.files === undefined) return res.send("");
-	const file = req.files.file as fileUpload.UploadedFile;
-	let id = Math.round(Math.random()*1e15);
-	let parts = file.name.split('.');
-	let name = id + '.' + parts[parts.length - 1];
-	console.log(name);
-	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
-		res.json({ url });
-	});
-})
+
 
 
 

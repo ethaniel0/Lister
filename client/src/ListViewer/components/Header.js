@@ -16,7 +16,7 @@ const Header = ({ name, uid, listid, owner, topPic, profPic }) => {
                 src={profPic}
                 alt="Profile"
                 className='absolute top-3 left-16 w-12 cursor-pointer rounded-full' />
-            {owner && <FaEdit onClick={() => history.push(`/makelist/${uid}/${listid}`)} className='absolute right-4 top-4 text-2xl cursor-pointer gear' />}
+            {owner && <FaEdit onClick={() => history.push(`/makelist/${uid}/${listid}`)} className='absolute right-4 top-4 text-2xl cursor-pointer gear  bg-white box-content p-1 rounded-lg border-black border-2' />}
             
         </div>
     )

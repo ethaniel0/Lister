@@ -163,7 +163,7 @@ function ListMaker() {
 
   return (
     <>
-      <Header name={listName} setName={editName} profPic={profPic} topPic={topPic} uid={uid} listid={listid} />
+      <Header name={listName} setName={editName} setTopPic={setTopPic} profPic={profPic} topPic={topPic} uid={uid} listid={listid} />
       <div className='flex flex-wrap justify-around p-4 mt-8 font-sans'>
         {sections.map((sec) => (
           <Card key={sec.id} card={sec} onEdit={editSection} onAdd={addItem} onItemEdit={editItem} onDeleteItem={deleteItem} onDelete={deleteSection} />
