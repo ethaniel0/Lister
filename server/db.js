@@ -343,10 +343,7 @@ async function uploadImage(name, file, ext, callback) {
             return "";
         }
         newFile.makePublic(async () => {
-            let url = await newFile.getSignedUrl({
-                action: 'read',
-                expires: ''
-            });
+            let url = newFile.publicUrl();
             console.log('Uploaded file', url);
             callback(url.toString());
         });

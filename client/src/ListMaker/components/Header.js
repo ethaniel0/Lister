@@ -46,7 +46,7 @@ const Header = ({ name, uid, listid, setName, topPic, profPic }) => {
                 onClick={(e) => {e.preventDefault(); e.stopPropagation(); history.push("/profile/" + uid)}}
                 alt="Profile"
                 className='absolute top-3 left-16 w-12 cursor-pointer rounded-full' />
-            <FaDoorOpen onClick={() => history.push(`/list/${uid}/${listid}`)} className='absolute right-4 top-4 text-2xl cursor-pointer gear' />
+            <FaDoorOpen onClick={(e) => {e.preventDefault(); e.stopPropagation(); history.push(`/list/${uid}/${listid}`)}} className='absolute right-4 top-4 text-2xl cursor-pointer gear' />
         </div>
     )
 }
