@@ -1,8 +1,9 @@
 import express from "express";
+import fileUpload from 'express-fileupload';
 const cookieParser = require('cookie-parser');
 import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, UserDoc, getSession, 
 		saveList, checkUserCookie, changeListName, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
-		updateUserProgress} from "./db.js";
+		updateUserProgress, uploadImage} from "./db.js";
 
 const PORT = process.env.PORT || 3001;
 
@@ -29,34 +30,7 @@ app.get('/testsession', async (req, res) => {
 app.get('/api', (req, res) => {
     res.json({message: "hello michael"});
 });
-app.post('/api/login', async (req, res) => {
-    let body = req.body;
-	if (!body.login){ // signing up
-		// check for errors: not an email, no confirmation password, passwords don't match, password is less than 6 characters, user already exists
-		if (!validateEmail(body.username)) return res.send(JSON.stringify({ error: "You must enter a valid email address" }));
-		else if (body.pass2.length == 0) return res.send(JSON.stringify({ error: "Password confirmation must be filled" }));
-		else if (body.pass2 != body.password) return res.send(JSON.stringify({ error: "Passwords must match" }));
-		else if (body.password.length < 6) return res.send(JSON.stringify({ error: "Password must be at least 6 characters long" }));
-		else if (await userExists({email: body.username})) return res.send(JSON.stringify({ error: "A user already exists with this email" }));
 
-		// save the user
-		await saveNewUser(body.username, body.username.split('@')[0], body.password, 'free', false, {cvv: "", number: ""});	
-		return res.json({ success: "Your account was created! Check your inbox for a confirmation email." });
-	}
-	else {
-		let resp = await checkUser(body.username, body.password);
-		if ( resp === 0 ) return res.send(JSON.stringify({ error: "No account exists with this email / username" }));
-		else if (resp === false) return res.send(JSON.stringify({ error: "Incorrect password." }));
-		let user: UserDoc = (await getUser({email: body.username, name: body.username}, false))[0];
-
-		let session = await getSession(user.id, body.password);
-		if (session.length > 0){
-			res.cookie('id', session, {httpOnly: true});
-			res.cookie('uid', user.id, {httpOnly: true});
-		}
-		return res.json({ success: "/profile/" + user.id });
-	}
-});
 app.get('/api/profile/:uid', async (req, res) => {
     let { uid } = req.params;
     let id = req.cookies['id'];
@@ -118,6 +92,34 @@ app.get('/logout', (req, res) => {
 
 });
 
+app.post('/api/login', async (req, res) => {
+    let body = req.body;
+	if (!body.login){ // signing up
+		// check for errors: not an email, no confirmation password, passwords don't match, password is less than 6 characters, user already exists
+		if (!validateEmail(body.username)) return res.send(JSON.stringify({ error: "You must enter a valid email address" }));
+		else if (body.pass2.length == 0) return res.send(JSON.stringify({ error: "Password confirmation must be filled" }));
+		else if (body.pass2 != body.password) return res.send(JSON.stringify({ error: "Passwords must match" }));
+		else if (body.password.length < 6) return res.send(JSON.stringify({ error: "Password must be at least 6 characters long" }));
+		else if (await userExists({email: body.username})) return res.send(JSON.stringify({ error: "A user already exists with this email" }));
+
+		// save the user
+		await saveNewUser(body.username, body.username.split('@')[0], body.password, 'free', false, {cvv: "", number: ""});	
+		return res.json({ success: "Your account was created! Check your inbox for a confirmation email." });
+	}
+	else {
+		let resp = await checkUser(body.username, body.password);
+		if ( resp === 0 ) return res.send(JSON.stringify({ error: "No account exists with this email / username" }));
+		else if (resp === false) return res.send(JSON.stringify({ error: "Incorrect password." }));
+		let user: UserDoc = (await getUser({email: body.username, name: body.username}, false))[0];
+
+		let session = await getSession(user.id, body.password);
+		if (session.length > 0){
+			res.cookie('id', session, {httpOnly: true});
+			res.cookie('uid', user.id, {httpOnly: true});
+		}
+		return res.json({ success: "/profile/" + user.id });
+	}
+});
 app.post('/api/newList/:uid', async (req, res) => {
 	let id = req.cookies['id'];
 	let {uid} = req.params;
@@ -224,6 +226,17 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 
 	await updateUserProgress(uid, listid, sid, tid, checked);
 	return res.json({'success': ''});
+})
+app.post('/upload', fileUpload(), function(req, res) {
+	if (req.files === undefined) return res.send("");
+	const file = req.files.file as fileUpload.UploadedFile;
+	let id = Math.round(Math.random()*1e15);
+	let parts = file.name.split('.');
+	let name = id + '.' + parts[parts.length - 1];
+	console.log(name);
+	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
+		res.json({ url });
+	});
 })
 
 

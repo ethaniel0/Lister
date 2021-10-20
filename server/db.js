@@ -24,10 +24,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.getSession = exports.uploadImage = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListName = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
+// import { isStringObject } from "util/types";
+// import fetch from 'node-fetch';
 // const admin = require("firebase-admin");
 admin.initializeApp({
     credential: admin.credential.cert('server/credentials.json'),
@@ -329,6 +331,39 @@ async function saveList(name, uid, password) {
     return res;
 }
 exports.saveList = saveList;
+async function uploadImage(name, file, ext, callback) {
+    file.name = name;
+    // Bucket.upload("", {
+    //   destination: file
+    // });
+    let newFile = Bucket.file(`images/${name}`);
+    newFile.save(file.data, (err) => {
+        if (err) {
+            console.error(`Error uploading: ${name} with message: ${err.message}`);
+            return "";
+        }
+        newFile.makePublic(async () => {
+            let url = await newFile.getSignedUrl({
+                action: 'read',
+                expires: ''
+            });
+            console.log('Uploaded file', url);
+            callback(url.toString());
+        });
+    });
+    // let file_binary = file.data;
+    // let url2file = 'https://firebasestorage.googleapis.com/v0/b/bringit-a32a6.appspot.com/o/images%2F' + name;
+    // let headers = {"Content-Type": "image/" + ext}
+    // let resp = await fetch(url2file, {
+    //   method: 'POST',
+    //   body: file_binary,
+    //   headers
+    // });
+    // r = requests.post(url2file, data=file_binary, headers=headers)
+    // let json = await resp.json();
+    // console.log(json);
+}
+exports.uploadImage = uploadImage;
 async function getSession(uid, password) {
     let user = await Users.doc(uid).get();
     let data = user.data();

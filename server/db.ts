@@ -7,7 +7,9 @@
 // const admin = require('firebase-admin');
 import * as admin from "firebase-admin"
 import * as crypto from "crypto"
-import { isStringObject } from "util/types";
+import fileUpload from 'express-fileupload';
+// import { isStringObject } from "util/types";
+// import fetch from 'node-fetch';
 // const admin = require("firebase-admin");
  
 admin.initializeApp({
@@ -365,6 +367,44 @@ export async function saveList(name: string, uid: string, password: string): Pro
     });
   }
   return res;
+}
+
+export async function uploadImage(name: string, file: fileUpload.UploadedFile, ext: string, callback: Function): Promise<void>{
+  file.name = name;
+  // Bucket.upload("", {
+  //   destination: file
+  // });
+  let newFile = Bucket.file(`images/${name}`);
+
+  newFile.save(file.data, (err) => {
+    if (err) {
+      console.error(`Error uploading: ${name} with message: ${err.message}`);
+      return "";
+    }
+    newFile.makePublic(async () => {
+      let url = await newFile.getSignedUrl({
+        action: 'read',
+        expires: ''
+      });
+      console.log('Uploaded file', url);
+      callback(url.toString());
+    });
+  });
+  
+
+  // let file_binary = file.data;
+
+  // let url2file = 'https://firebasestorage.googleapis.com/v0/b/bringit-a32a6.appspot.com/o/images%2F' + name;
+  // let headers = {"Content-Type": "image/" + ext}
+  // let resp = await fetch(url2file, {
+  //   method: 'POST',
+  //   body: file_binary,
+  //   headers
+  // });
+
+  // r = requests.post(url2file, data=file_binary, headers=headers)
+  // let json = await resp.json();
+  // console.log(json);
 }
 
 export async function getSession(uid: string, password: string): Promise<string>{

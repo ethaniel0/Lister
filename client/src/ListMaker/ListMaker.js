@@ -8,7 +8,7 @@ import Card from './components/Card';
 
 function ListMaker() {
   const [sections, setSections] = useState([]);
-  const [listName, setListName] = useState("Name");
+  const [listName, setListName] = useState("");
   const [topPic, setTopPic] = useState("https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg");
   const [profPic, setProfPic] = useState('/images/pfpic.png');
   const history = useHistory();

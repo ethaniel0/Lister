@@ -23,7 +23,6 @@ function ListViewer() {
           setOwner(json.owner);
           setProfPic(json.profPic);
           setTopPic(json.topPic);
-          console.log(json.sections, json.checks);
 
           for (let skey in json.checks){
             for (let ikey in json.checks[skey]){
