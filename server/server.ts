@@ -89,7 +89,10 @@ app.get('/api/viewer/:listid/getChecks', async (req, res) => {
 	return res.json(user.listProgress[listid]);
 })
 app.get('/logout', (req, res) => {
-
+	console.log('logging');
+	res.clearCookie('id');
+	res.clearCookie('uid');
+	res.send("");
 });
 
 app.post('/api/login', async (req, res) => {

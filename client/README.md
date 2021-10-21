@@ -1,11 +1,14 @@
 # TODO
 
-## List Editor
-- edit main picture
-- edit header picture
+
+
+## Main Page
+- profile menu
 
 ## Profile
-- save lists
+- only show private lists if you're logged in
+- edit main picture
+
 
 ## Browse
 - entire browse page

@@ -2,12 +2,15 @@ import { Link } from 'react-router-dom';
 import { FaPlusCircle } from 'react-icons/fa'
 import { useState } from 'react';
 import { useHistory } from "react-router-dom";
+import Modal from './Modal';
+import Menu from './Menu';
 
 const Header = ({ showModal, setModal, logged, name, uid }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [valPassword, setValPassword] = useState(false);
     const [error, setError] = useState("");
+    const [menu, showMenu] = useState(false);
     const history = useHistory();
     const switchType = () => {
         if (valPassword === false) setValPassword("");
@@ -38,7 +41,7 @@ const Header = ({ showModal, setModal, logged, name, uid }) => {
     }
     return (
         <>
-                <nav id='desktop-nav' className='flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border'>
+                <nav id='desktop-nav' className='absolute flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border z-50'>
                 <span className='flex items-center'>
                     <img src="/images/bilogo.png" alt="logo" className="h-12 mr-2" />
                     <span className='font-medium text-2xl'>Bring It</span>
@@ -48,9 +51,14 @@ const Header = ({ showModal, setModal, logged, name, uid }) => {
                 </div>
                 <div className='flex items-center'>
                     {
-                        !logged 
-                        ? <span onClick={() => setModal(true)} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</span>
-                        : <Link to={'/profile/' + uid} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{name}</Link>
+                        <div>
+                            {
+                            !logged 
+                            ? <span onClick={() => setModal(true)} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</span>
+                            : <Link to={'/profile/' + uid} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{name}</Link>
+                            }
+                            <Menu uid={uid} />
+                        </div>
                     }
                     
                     <div id="new-list-button" className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer">
@@ -60,28 +68,9 @@ const Header = ({ showModal, setModal, logged, name, uid }) => {
                 </div>
             </nav>
 
-            <div id='login-modal' onClick={() => setModal(false)} className={'box-border absolute justify-center items-center left-0 top-0 w-full h-full ' + (showModal ? 'flex' : 'hidden')}>
-                <div id='inner-login-modal' onClick={modalClick} className='flex flex-col justify-center relative p-4 rounded-lg bg-gray-100 border-2 border-gray-300'>
-                    <div>
-                        <div className='text-3xl font-bold mb-8'>Log in</div>
-                        <div className="text-right">
-                            <span id="login-error" style={{display: (error === "" ? 'none' : "block")}} className='text-red-600 font-semibold text-xs text-right'>{error}</span>
-                        </div>
-                        <div className='font-bold mb-2'>Email</div>
-                        <input id='login-user' type='text' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email or Username' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
-                        <div className='font-bold mb-2'>Password</div>
-                        <input id='login-pass' type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
-                        <div id="modal-confirm-pass" style={{display: (valPassword === false ? 'none' : 'block')}}>
-                            <span className='font-bold mb-2'>Confirm Password</span>
-                            <input id='login-pass2' type='password' value={valPassword} onChange={(e) => setValPassword(e.target.value)} placeholder='Confirm Password' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
-                        </div>
-                        <div className="center">
-                            <button id="login-submit" onClick={logIn} className="px-6 py-2 rounded-full text-white text-xl cursor-pointer mb-3">Log In</button>
-                        </div>
-                        <span id='login-signin' className='signin block w-full text-right'>{valPassword === false ? "Don't have an account? " : "Have an account? "}<span onClick={switchType} className='text-blue-600 cursor-pointer font-bold'>{valPassword === false ? "Create an account " : "Log in "}</span></span>
-                    </div>
-                </div>
-            </div>
+            <Modal setModal={setModal} showModal={showModal} setEmail={setEmail} email={email} 
+                   setPassword={setPassword} password={password} setValPassword={setValPassword} valPassword={valPassword} 
+                   switchType={switchType} logIn={logIn} error={error} modalClick={modalClick} />
         </>
         
     )
