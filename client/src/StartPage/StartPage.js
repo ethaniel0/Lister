@@ -43,6 +43,7 @@ function StartPage() {
     const [loggedIn, setLogged] = useState(false);
     const [name, setName] = useState("");
     const [uid, setUid] = useState("");
+    const [menu, showMenu] = useState(false);
 
     const onEdit = (ind, checked) => {
         console.log(ind);
@@ -67,9 +68,17 @@ function StartPage() {
         return () => { isMounted = false };
     }, [])
 
+    const bodyClick = (e) => {
+        let el = document.getElementById('header-menu');
+        let name = document.getElementById('username');
+        if (!el.contains(e.target) && !name.contains(e.target)) {
+            showMenu(false);
+        }
+    };
+
   return (
-    <>  
-        <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} />
+    <div onClick={bodyClick}>  
+        <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} menu={menu} showMenu={showMenu} />
         
         <main className='text-center transition duration-300' style={{filter: (modal ? "blur(10px)" : 'blur(0)')}}>
             <div id="cont" className='flex'>
@@ -90,7 +99,7 @@ function StartPage() {
                 
             </div>
         </main>
-    </>
+    </div>
   );
 }
 

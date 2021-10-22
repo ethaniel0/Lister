@@ -5,12 +5,12 @@ import { useHistory } from "react-router-dom";
 import Modal from './Modal';
 import Menu from './Menu';
 
-const Header = ({ showModal, setModal, logged, name, uid }) => {
+const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [valPassword, setValPassword] = useState(false);
     const [error, setError] = useState("");
-    const [menu, showMenu] = useState(false);
+    
     const history = useHistory();
     const switchType = () => {
         if (valPassword === false) setValPassword("");
@@ -39,6 +39,7 @@ const Header = ({ showModal, setModal, logged, name, uid }) => {
             else if (json.success) history.push(json.success);
         });
     }
+    
     return (
         <>
                 <nav id='desktop-nav' className='absolute flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border z-50'>
@@ -55,9 +56,9 @@ const Header = ({ showModal, setModal, logged, name, uid }) => {
                             {
                             !logged 
                             ? <span onClick={() => setModal(true)} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</span>
-                            : <Link to={'/profile/' + uid} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{name}</Link>
+                            : <span onClick={() => showMenu(!menu)} id='username' className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>{name}</span>
                             }
-                            <Menu uid={uid} />
+                            <Menu uid={uid} menu={menu} />
                         </div>
                     }
                     

@@ -1,13 +1,15 @@
 # TODO
 
-
-
-## Main Page
-- profile menu
-
 ## Profile
 - only show private lists if you're logged in
 - edit main picture
+
+## Settings Page
+- Change username
+- change password
+- change profile picture
+- change top bar picture
+
 
 
 ## Browse
