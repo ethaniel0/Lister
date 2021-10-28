@@ -1,4 +1,5 @@
 import Header from './Header'
+import List from './List';
 import { FaPlus } from 'react-icons/fa'
 import './Profile.css';
 import { useHistory, useParams } from "react-router-dom";
@@ -42,9 +43,7 @@ const Profile = ({ savedLists }) => {
                 <div id="lists" className='p-5 flex justify-center'>
                     {
                         profile.personalLists.map((list) => (
-                            <div key={list.id} onClick={() => goToList(list.id)} style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
-                                <span className='bg-white w-full p-1 bg-opacity-60 text-xl'>{list.name}</span>
-                            </div>
+                            <List key={list.id} id={list.id} image={list.image} name={list.name} goToList={goToList} />
                         ))
                     }
                     {
