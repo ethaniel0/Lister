@@ -15,6 +15,7 @@ const Profile = ({ savedLists }) => {
         topPic: "https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg",
         owner: false
     })
+    const [showItemMenu, setMenu] = useState(-1);
     const newList = () => {
         fetch('/api/newList/' + uid,
         { method: 'POST' }).then(resp => resp.json()).then(json => {
@@ -36,14 +37,14 @@ const Profile = ({ savedLists }) => {
     }
     
     return (
-        <>
+        <div onClick={() => setMenu(-1)}>
             <Header name={profile.name} profPic={profile.profPic} topPic={profile.topPic} />
             <main className='text-center mt-8'>
                 <h2 className='text-3xl'>My Lists</h2>
                 <div id="lists" className='p-5 flex justify-center'>
                     {
-                        profile.personalLists.map((list) => (
-                            <List key={list.id} id={list.id} image={list.image} name={list.name} goToList={goToList} />
+                        profile.personalLists.map((list, ind) => (
+                            <List key={list.id} id={list.id} ind={ind} image={list.image} name={list.name} goToList={goToList} showItemMenu={showItemMenu === ind} setItemMenu={setMenu} />
                         ))
                     }
                     {
@@ -66,7 +67,7 @@ const Profile = ({ savedLists }) => {
                     }
                 </div>
             </main>
-        </>
+        </div>
     )
 }
 

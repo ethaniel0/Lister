@@ -71,7 +71,7 @@ function StartPage() {
     const bodyClick = (e) => {
         let el = document.getElementById('header-menu');
         let name = document.getElementById('username');
-        if (!el.contains(e.target) && !name.contains(e.target)) {
+        if (el && name && !el.contains(e.target) && !name.contains(e.target)) {
             showMenu(false);
         }
     };
