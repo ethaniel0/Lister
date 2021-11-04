@@ -47,10 +47,12 @@ app.get('/api/profile/:uid', async (req, res) => {
 	for (let l of user.personalLists){
 		let list: List | null = await getList(l.id, l.viewable, false);
 		if (list === null) continue;
+		if (id !== user.session && !list.public) continue;
 		filtered.personalLists.push({
 			id: l.id,
 			name: list.name,
-			image: list.image
+			image: list.image,
+			public: list.public
 		});
 	}
     res.json(filtered);
@@ -61,6 +63,7 @@ app.get('/api/list/:listid', async (req, res) => {
 	let uid = req.cookies['uid'];
 	let list: List | null = await getList(listid, true, false);
 	if (!list) list = await getList(listid, false, false) as List;
+	if (!list) return res.json({error: 'list not found'});
 	let user: User | null = await getUserProfile(list.owner);
 	let session = (user === null) ? "" : user.session;
 	let ret = {
@@ -223,7 +226,6 @@ app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(r
 	let id = Math.round(Math.random()*1e15);
 	let parts = file.name.split('.');
 	let name = id + '.' + parts[parts.length - 1];
-	console.log(name);
 	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
 		if (url.length > 0){
 			changeListField(ul as UserList, listid, 'topImage', url);
@@ -231,6 +233,24 @@ app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(r
 		res.json({ url });
 	});
 })
+app.post('/api/edit/:uid/:listid/uploadCoverImage', fileUpload(), async function(req, res) {
+	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
+	let { uid, listid } = req.params;
+	let { session, user, ul } = await checkList(req, res, uid, listid);
+	if (session === 'error') return res.json({'error': user});
+	let file = req.files.file as fileUpload.UploadedFile;
+
+	let id = Math.round(Math.random()*1e15);
+	let parts = file.name.split('.');
+	let name = id + '.' + parts[parts.length - 1];
+	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
+		if (url.length > 0){
+			changeListField(ul as UserList, listid, 'image', url);
+		}
+		res.json({ url });
+	});
+})
+
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 	let session = req.cookies['id'];
 	let uid = req.cookies['uid'];

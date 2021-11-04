@@ -75,7 +75,6 @@ function StartPage() {
             showMenu(false);
         }
     };
-
   return (
     <div onClick={bodyClick}>  
         <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} menu={menu} showMenu={showMenu} />

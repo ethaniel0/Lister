@@ -40,8 +40,7 @@ const Bucket = admin.storage().bucket();
 const FieldValue = admin.firestore.FieldValue;
 const Users = Db.collection('Users');
 const Organizations = Db.collection('Organizations');
-const PvLists = Db.collection('Private Lists');
-const PbLists = Db.collection('Public Lists');
+const Lists = Db.collection('Lists');
 const PvTemplates = Db.collection('Private Templates');
 const PbTemplates = Db.collection('Public Templates');
 async function userExists(anyOf) {
@@ -97,6 +96,7 @@ function makeList(name, owner, password) {
         topImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Solid_green_%2880B682%29.svg/512px-Solid_green_%2880B682%29.svg.png",
         name: name,
         owner: owner,
+        public: false,
         password: password || "",
         saveDate: admin.firestore.Timestamp.fromDate(new Date()),
         sections: {}
@@ -108,6 +108,7 @@ function makeTemplate(name, owner, password) {
         topImage: "",
         name: name,
         owner: owner,
+        public: false,
         password: password || "",
         saveDate: admin.firestore.Timestamp.fromDate(new Date()),
         sections: {}
@@ -164,20 +165,17 @@ async function getUserList(uid, listid) {
 }
 exports.getUserList = getUserList;
 async function getList(id, viewable, isTemplate) {
-    let col = viewable ? isTemplate ? PbTemplates : PbLists : isTemplate ? PvTemplates : PvLists;
-    let list = await col.doc(id).get();
+    let list = await Lists.doc(id).get();
     if (list.exists)
         return list.data();
     return null;
 }
 exports.getList = getList;
 function changeListName(ul, listid, name) {
-    let Lists = ul.viewable ? PbLists : PvLists;
     Lists.doc(listid).update({ name });
 }
 exports.changeListName = changeListName;
 function changeListField(ul, listid, field, value) {
-    let Lists = ul.viewable ? PbLists : PvLists;
     let upd = {};
     upd[field] = value;
     Lists.doc(listid).update(upd);
@@ -186,7 +184,6 @@ exports.changeListField = changeListField;
 async function newSection(ul, listid, index, color) {
     if (!ul)
         return {};
-    let Lists = ul.viewable ? PbLists : PvLists;
     let update = {}; // add either a section or option to a section
     let id = makeID(8);
     let tid = makeID(8);
@@ -200,7 +197,6 @@ exports.newSection = newSection;
 async function editSection(ul, listid, sid, field, value) {
     if (!ul)
         return false;
-    let Lists = ul.viewable ? PbLists : PvLists;
     let update = {};
     update[`sections.${sid}.${field}`] = value;
     Lists.doc(listid).update(update);
@@ -210,7 +206,6 @@ exports.editSection = editSection;
 async function deleteSection(ul, list, listid, sid) {
     if (!ul)
         return false;
-    let Lists = ul.viewable ? PbLists : PvLists;
     if (list === null || !(sid in list.sections))
         return false;
     delete list.sections[sid];
@@ -232,7 +227,6 @@ exports.deleteSection = deleteSection;
 async function newItem(ul, list, listid, sid, index) {
     if (!ul || list === null)
         return '';
-    let Lists = ul.viewable ? PbLists : PvLists;
     let update = {}; // add either a section or option to a section
     let tid = makeID(8);
     let items = Object.values(list.sections[sid].items);
@@ -259,7 +253,6 @@ async function editItem(uid, listid, sid, tid, text) {
     let ul = await getUserList(uid, listid);
     if (!ul)
         return {};
-    let Lists = ul.viewable ? PbLists : PvLists;
     let update = {}; // add either a section or option to a section
     update[`sections.${sid}.items.${tid}.text`] = text;
     await Lists.doc(listid).update(update);
@@ -270,7 +263,6 @@ async function deleteItem(uid, listid, sid, tid) {
     let ul = await getUserList(uid, listid);
     if (!ul)
         return false;
-    let Lists = ul.viewable ? PbLists : PvLists;
     let list = await getList(listid, ul.viewable, false);
     if (list === null || !(sid in list.sections) || !(tid in list.sections[sid].items))
         return false;
@@ -317,7 +309,7 @@ async function saveTemplate(name, userID, password) {
 exports.saveTemplate = saveTemplate;
 async function saveList(name, uid, password) {
     let list = makeList(name, uid, password);
-    let res = await PvLists.add(list);
+    let res = await Lists.add(list);
     let upd = {
         id: res.id,
         saveDate: list.saveDate,

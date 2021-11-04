@@ -23,7 +23,6 @@ const Header = ({ name, uid, listid, setName, topPic, profPic, setTopPic }) => {
             }
             else {
                 setTopPic(data.url);
-                console.log(data);
             }
         })
     };

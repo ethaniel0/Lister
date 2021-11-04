@@ -13,8 +13,13 @@ function ListMaker() {
   const [profPic, setProfPic] = useState('/images/pfpic.png');
   const history = useHistory();
   const { uid, listid } = useParams();
+  const trial = uid === undefined;
 
   useEffect(() => {
+    if (trial){
+      setListName("New List");
+      return;
+    }
     let isMounted = true;
     fetch('/api/list/' + listid).then(res => res.json()).then(json => {
         if (json.error) return history.push('/');
@@ -38,6 +43,7 @@ function ListMaker() {
 
   const editName = (name) => {
     setListName(name);
+    if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/editListName`, {
       method: 'POST',
       headers: {
@@ -47,8 +53,31 @@ function ListMaker() {
     });
   }
 
+  const randomHex = (size) => {
+    let alph = 'abcdef1234567890';
+    let ret = '';
+    for (let i = 0; i < size; i++) ret += alph.charAt(Math.floor(Math.random()*alph.length));
+    return ret;
+  }
+
   const addSection = () => {
     let randColor = ['red', 'blue', 'yellow', 'green', 'gray', 'indigo', 'purple', 'pink'][Math.floor(Math.random() * 8)];
+    if (trial){
+      let sid = randomHex(8);
+      let tid = randomHex(8);
+      setSections([...sections, {
+        id: sid,
+        name: "New Section",
+        color: randColor,
+        items: [{
+          id: tid,
+          text: "",
+          checked: false
+        }]
+      }]);
+      return;
+    }
+
     fetch(`/api/edit/${uid}/${listid}/addSection`, {
       method: 'POST',
       headers: {
@@ -74,6 +103,7 @@ function ListMaker() {
   const editSection = (sid, field, value, sec) => {
     let old = sections;
     setSections(sections.map(s => s.id === sec.id ? sec : s));
+    if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/editSection`, {
         method: 'POST',
         headers: {
@@ -90,6 +120,7 @@ function ListMaker() {
   const deleteSection = (id) => {
     let old = sections;
     setSections(sections.filter(s => s.id !== id));
+    if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/deleteSection`, {
         method: 'POST',
         headers: {
@@ -113,6 +144,10 @@ function ListMaker() {
       index: sec.items.length
     };
     sec.items.splice(ind+1, 0, item);
+    if (trial){
+      item.id = randomHex(8);
+      return setSections(sections.map(s => s.id === sec.id ? sec : s));
+    }
     setSections(sections.map(s => s.id === sec.id ? sec : s));
     fetch(`/api/edit/${uid}/${listid}/addItem`, {
         method: 'POST',
@@ -132,6 +167,7 @@ function ListMaker() {
   const editItem = (sid, tid, value, sec) => {
     let old = sections;
     setSections(sections.map(s => s.id === sec.id ? sec : s));
+    if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/editItem`, {
         method: 'POST',
         headers: {
@@ -148,6 +184,7 @@ function ListMaker() {
   const deleteItem = (sid, tid, sec) => {
     let old = sections;
     setSections(sections.map(s => s.id === sec.id ? sec : s));
+    if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/deleteItem`, {
         method: 'POST',
         headers: {

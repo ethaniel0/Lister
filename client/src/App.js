@@ -13,6 +13,7 @@ function App() {
         <Route exact path='/' component={StartPage}></Route>
         <Route exact path='/list/:uid/:listid' component={ListViewer} />
         <Route exact path='/makelist/:uid/:listid' component={ListMaker} />
+        <Route exact path='/makelist/untitled' component={ListMaker} />
         <Route exact path='/profile/:uid' component={Profile}></Route>
       </Switch>
     </Router>

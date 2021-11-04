@@ -24,8 +24,7 @@ const FieldValue = admin.firestore.FieldValue;
 
 const Users = Db.collection('Users');
 const Organizations = Db.collection('Organizations');
-const PvLists = Db.collection('Private Lists');
-const PbLists = Db.collection('Public Lists');
+const Lists = Db.collection('Lists');
 const PvTemplates = Db.collection('Private Templates');
 const PbTemplates = Db.collection('Public Templates');
 
@@ -63,6 +62,7 @@ export interface List {
   name: string;
   owner: string;
   password: string;
+  public: boolean;
   saveDate: admin.firestore.Timestamp;
   sections: {
     [key: string]: ListSection
@@ -147,6 +147,7 @@ function makeList(name: string, owner: string, password: string): List{
     topImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Solid_green_%2880B682%29.svg/512px-Solid_green_%2880B682%29.svg.png",
     name: name,
     owner: owner,
+    public: false,
     password: password || "",
     saveDate: admin.firestore.Timestamp.fromDate(new Date()),
     sections: {}
@@ -158,6 +159,7 @@ function makeTemplate(name:string, owner:string, password:string): List{
     topImage: "",
     name: name,
     owner: owner,
+    public: false,
     password: password || "",
     saveDate: admin.firestore.Timestamp.fromDate(new Date()),
     sections: {}
@@ -210,18 +212,15 @@ export async function getUserList(uid: string, listid: string): Promise<UserList
 }
 
 export async function getList(id: string, viewable: boolean, isTemplate: boolean): Promise<List | null>{
-  let col: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData> = viewable ? isTemplate ? PbTemplates : PbLists : isTemplate ? PvTemplates : PvLists;
-  let list = await col.doc(id).get();
+  let list = await Lists.doc(id).get();
   if (list.exists) return list.data() as List;
   return null;
 }
 
 export function changeListName(ul: UserList, listid: string, name: string){
-  let Lists = ul.viewable ? PbLists : PvLists;
   Lists.doc(listid).update({ name });
 }
 export function changeListField(ul: UserList, listid: string, field: string, value: string){
-  let Lists = ul.viewable ? PbLists : PvLists;
   let upd: any = {};
   upd[field] = value;
   Lists.doc(listid).update(upd);
@@ -229,7 +228,6 @@ export function changeListField(ul: UserList, listid: string, field: string, val
 
 export async function newSection(ul: UserList, listid: string, index: number, color: string): Promise<TypedObject<string>>{
   if (!ul) return {};
-  let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {}; // add either a section or option to a section
   let id: string = makeID(8);
   let tid: string = makeID(8);
@@ -241,7 +239,6 @@ export async function newSection(ul: UserList, listid: string, index: number, co
 }
 export async function editSection(ul: UserList, listid: string, sid: string, field: string, value: any): Promise<boolean>{
   if (!ul) return false;
-  let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {};
   update[`sections.${sid}.${field}`] = value;
   Lists.doc(listid).update(update);
@@ -249,7 +246,6 @@ export async function editSection(ul: UserList, listid: string, sid: string, fie
 }
 export async function deleteSection(ul: UserList, list: List | null, listid: string, sid: string): Promise<boolean>{
   if (!ul) return false;
-  let Lists = ul.viewable ? PbLists : PvLists;
   
   if (list === null || !(sid in list.sections)) return false;
   delete list.sections[sid];
@@ -273,7 +269,6 @@ export async function deleteSection(ul: UserList, list: List | null, listid: str
 
 export async function newItem(ul: UserList | null, list: List | null, listid: string, sid: string, index: number): Promise<string>{
   if (!ul || list === null) return '';
-  let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {}; // add either a section or option to a section
   let tid: string = makeID(8);
   let items = Object.values(list.sections[sid].items);
@@ -296,7 +291,6 @@ export async function newItem(ul: UserList | null, list: List | null, listid: st
 export async function editItem(uid: string, listid: string, sid: string, tid: string, text: string): Promise<TypedObject<string>>{
   let ul = await getUserList(uid, listid);
   if (!ul) return {};
-  let Lists = ul.viewable ? PbLists : PvLists;
   let update: any = {}; // add either a section or option to a section
   update[`sections.${sid}.items.${tid}.text`] = text;
   await Lists.doc(listid).update(update);
@@ -305,7 +299,6 @@ export async function editItem(uid: string, listid: string, sid: string, tid: st
 export async function deleteItem(uid: string, listid: string, sid: string, tid: string): Promise<boolean>{
   let ul = await getUserList(uid, listid);
   if (!ul) return false;
-  let Lists = ul.viewable ? PbLists : PvLists;
   
   let list: List | null = await getList(listid, ul.viewable, false);
   if (list === null || !(sid in list.sections) || !(tid in list.sections[sid].items)) return false;
@@ -354,7 +347,7 @@ export async function saveTemplate(name: string, userID: string, password: strin
 
 export async function saveList(name: string, uid: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
   let list: List = makeList(name, uid, password);
-  let res = await PvLists.add(list);
+  let res = await Lists.add(list);
 
   let upd: UserList = {
     id: res.id,

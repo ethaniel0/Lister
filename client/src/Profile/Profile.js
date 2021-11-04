@@ -20,7 +20,7 @@ const Profile = ({ savedLists }) => {
         fetch('/api/newList/' + uid,
         { method: 'POST' }).then(resp => resp.json()).then(json => {
             console.log(json);
-            if (json.success) history.push('/makeList/' + uid + '/' + json.success);
+            if (json.success) history.push('/makelist/' + uid + '/' + json.success);
         })
     }
     useEffect(() => {
@@ -44,7 +44,7 @@ const Profile = ({ savedLists }) => {
                 <div id="lists" className='p-5 flex justify-center'>
                     {
                         profile.personalLists.map((list, ind) => (
-                            <List key={list.id} id={list.id} ind={ind} image={list.image} name={list.name} goToList={goToList} showItemMenu={showItemMenu === ind} setItemMenu={setMenu} />
+                            <List key={list.id} id={list.id} ind={ind} image={list.image} name={list.name} isPublic={list.public} goToList={goToList} showItemMenu={showItemMenu === ind} setItemMenu={setMenu} uid={uid} profile={profile} />
                         ))
                     }
                     {

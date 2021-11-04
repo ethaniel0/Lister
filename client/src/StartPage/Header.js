@@ -39,10 +39,22 @@ const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu }) => {
             else if (json.success) history.push(json.success);
         });
     }
+
+    const newList = () => {
+        if (!logged){
+            history.push('/makelist/untitled');
+            return;
+        }
+        fetch('/api/newList/' + uid,
+        { method: 'POST' }).then(resp => resp.json()).then(json => {
+            console.log(json);
+            if (json.success) history.push('/makeList/' + uid + '/' + json.success);
+        })
+    }
     
     return (
         <>
-                <nav id='desktop-nav' className='absolute flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border z-50'>
+            <nav id='desktop-nav' className='absolute flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border z-50'>
                 <span className='flex items-center'>
                     <img src="/images/bilogo.png" alt="logo" className="h-12 mr-2" />
                     <span className='font-medium text-2xl'>Bring It</span>
@@ -64,7 +76,7 @@ const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu }) => {
                     
                     <div id="new-list-button" className="new-list flex items-center text-xl text-white bg-blue-500 px-3 py-2 rounded-3xl cursor-pointer">
                         <FaPlusCircle />
-                        <Link to="/makelist" className='inline-block ml-2'>New List</Link>
+                        <span onClick={newList} className='inline-block ml-2 cursor-pointer'>New List</span>
                     </div>
                 </div>
             </nav>
