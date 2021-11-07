@@ -3,6 +3,7 @@ import StartPage from './StartPage/StartPage';
 import Profile from './Profile/Profile';
 import ListViewer from './ListViewer/ListViewer';
 import ListMaker from './ListMaker/ListMaker';
+import Settings from './Settings/Settings';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route exact path='/makelist/:uid/:listid' component={ListMaker} />
         <Route exact path='/makelist/untitled' component={ListMaker} />
         <Route exact path='/profile/:uid' component={Profile}></Route>
+        <Route exact path='/profile/:uid/Settings' component={Settings}></Route>
       </Switch>
     </Router>
     

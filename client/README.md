@@ -1,8 +1,7 @@
 # TODO
 
 ## Profile
-- only show private lists if you're logged in
-- edit main picture
+
 
 ## Settings Page
 - Change username
@@ -19,4 +18,12 @@
     - search functionality
         - ranking within the db
         - retrieving the most popular lists
-    
+
+
+
+# Done
+
+## Profile
+- only show private lists if you're logged in
+- edit main picture
+- make lists private or public

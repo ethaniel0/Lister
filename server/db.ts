@@ -217,15 +217,14 @@ export async function getList(id: string, viewable: boolean, isTemplate: boolean
   return null;
 }
 
-export function changeListName(ul: UserList, listid: string, name: string){
-  Lists.doc(listid).update({ name });
+export function deleteList(listid: string){
+  Lists.doc(listid).delete();
 }
 export function changeListField(ul: UserList, listid: string, field: string, value: string){
   let upd: any = {};
   upd[field] = value;
   Lists.doc(listid).update(upd);
 }
-
 export async function newSection(ul: UserList, listid: string, index: number, color: string): Promise<TypedObject<string>>{
   if (!ul) return {};
   let update: any = {}; // add either a section or option to a section

@@ -39,7 +39,7 @@ function ListMaker() {
         }
     });
     return () => { isMounted = false };
-}, [history, listid]);
+}, [history, listid, trial]);
 
   const editName = (name) => {
     setListName(name);

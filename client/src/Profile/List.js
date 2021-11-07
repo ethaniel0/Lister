@@ -2,7 +2,9 @@ import ItemMenu from "./ItemMenu";
 import { useState } from 'react';
 import { FaUserCheck } from 'react-icons/fa'
 
-const List = ({ id, image, name, isPublic, goToList, showItemMenu, setItemMenu, ind, uid, profile }) => {
+const List = ({ list, goToList, showItemMenu, setItemMenu, ind, uid, profile, deleteList, setPublic }) => {
+    let { id, image, name } = list;
+    let isPublic = list.public;
 
     const [img, setImg] = useState(image);
 
@@ -38,7 +40,7 @@ const List = ({ id, image, name, isPublic, goToList, showItemMenu, setItemMenu, 
             <div className='bg-white w-full p-1 bg-opacity-60 text-xl relative'>
                 <span>{name}</span>
                 <span onClick={dots} className="absolute right-0 bottom-0 p-2 font-bold cursor-pointer">...</span>
-                {showItemMenu && <ItemMenu menu={true} id={id} uploadFile={uploadFile} />}
+                {showItemMenu && <ItemMenu menu={true} id={id} isPublic={isPublic} uploadFile={uploadFile} deleteList={deleteList} setPublic={() => {setItemMenu(-1); setPublic(id, !isPublic)}} />}
                 <span className={"absolute left-0 bottom-0 p-2 font-bold cursor-pointer text-green-800" + (profile.owner ? "" : " hidden")} >{isPublic && <FaUserCheck />}</span>
             </div>
         </div>

@@ -8,3 +8,6 @@
     margin-right: 1rem;
     margin-left: 1rem;
 }
+#settings:hover {
+    transform: scale(110%);
+}

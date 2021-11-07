@@ -97,7 +97,6 @@ app.get('/api/viewer/:listid/getChecks', async (req, res) => {
     return res.json(user.listProgress[listid]);
 });
 app.get('/logout', (req, res) => {
-    console.log('logging');
     res.clearCookie('id');
     res.clearCookie('uid');
     res.send("");
@@ -169,6 +168,14 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
     if (session === 'error')
         return res.json({ 'error': user });
     (0, db_js_1.changeListField)(ul, listid, 'name', name);
+    return res.json({ 'success': true });
+});
+app.post('/api/deleteList/:uid/:listid/', async (req, res) => {
+    let { uid, listid } = req.params;
+    let { session, user } = await checkList(req, res, uid, listid);
+    if (session === 'error')
+        return res.json({ 'error': user });
+    (0, db_js_1.deleteList)(listid);
     return res.json({ 'success': true });
 });
 app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
@@ -274,6 +281,15 @@ app.post('/api/edit/:uid/:listid/uploadCoverImage', (0, express_fileupload_1.def
         }
         res.json({ url });
     });
+});
+app.post('/api/edit/:uid/:listid/setPublic', async (req, res) => {
+    let { uid, listid } = req.params;
+    let { isPublic } = req.body;
+    let { session, user, ul } = await checkList(req, res, uid, listid);
+    if (session === 'error')
+        return res.json({ 'error': user });
+    (0, db_js_1.changeListField)(ul, listid, 'public', isPublic);
+    return res.json({ 'success': true });
 });
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
     let session = req.cookies['id'];

@@ -1,6 +1,6 @@
 import { useHistory } from "react-router-dom";
 
-const Header = ({ name, profPic, topPic }) => {
+const Header = ({ name, profPic, topPic, uid }) => {
     // console.log('pic:', topPic);
     const history = useHistory();
     return (
@@ -15,7 +15,7 @@ const Header = ({ name, profPic, topPic }) => {
                 alt="Bring It main page"
                 className='absolute top-3 left-2 w-12 border-white border-2 rounded-full cursor-pointer' />
             <img
-                onClick={() => history.push("/profile")}
+                onClick={() => history.push("/profile/" + uid)}
                 src={profPic}
                 alt="Profile page"
                 className='absolute top-3 left-16 w-12 cursor-pointer rounded-full' />
