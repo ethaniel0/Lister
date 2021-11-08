@@ -36,7 +36,7 @@ const List = ({ list, goToList, showItemMenu, setItemMenu, ind, uid, profile, de
     };
 
     return (
-        <div key={id} onClick={() => goToList(id)} style={{backgroundImage: 'url(' + img +')', backgroundSize: 'cover', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
+        <div key={id} onClick={() => goToList(id)} style={{backgroundImage: 'url(' + img +')', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))'}}  className="listDiv w-60 h-60 flex flex-col items-center justify-end">
             <div className='bg-white w-full p-1 bg-opacity-60 text-xl relative'>
                 <span>{name}</span>
                 <span onClick={dots} className="absolute right-0 bottom-0 p-2 font-bold cursor-pointer">...</span>

@@ -76,7 +76,7 @@ const Profile = ({ savedLists }) => {
                     {/* Show the New List square */}
                     {
                         profile.owner &&
-                        <div onClick={newList} className="listDiv w-60 h-60 border-2 border-dotted shadow-lg p-2 flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-200  transition-colors duration-300 cursor-default">
+                        <div onClick={newList} style={{filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))'}} className="listDiv w-60 h-60 p-2 flex flex-col items-center justify-center bg-blue-50 transition-colors duration-300 hover:bg-blue-200 cursor-default">
                                 <FaPlus className="block text-5xl mb-4 text-gray-500" />
                                 <span className="text-2xl text-gray-400">New List</span>
                         </div>
@@ -92,15 +92,12 @@ const Profile = ({ savedLists }) => {
                         {
                             savedLists.map((list, ind) => (
                                 <List key={list.id} list={list} ind={ind} goToList={goToList} showItemMenu={showItemMenu === ind} setItemMenu={setMenu} uid={uid} profile={profile} />
-                                // <div key={list.id} style={{backgroundImage: 'url(' + list.image +')', backgroundSize: 'contain', backgroundRepeat: 'no-repeat'}}  className="listDiv w-60 h-60 border-2 border-gray-200 border-dotted shadow-lg flex flex-col items-center justify-end">
-                                //     <span className='bg-white w-full p-1 bg-opacity-60 text-xl'>{list.name}</span>
-                                // </div>
                             ))
                         }
                     </div>
                     </>
                 }
-                <FaCog onClick={() => history.push('/settings')} id='settings' className='absolute top-0 right-8 text-2xl cursor-pointer transition duration-300' />
+                <FaCog onClick={() => history.push('/profile/' + uid + '/settings/')} id='settings' className='absolute top-0 right-8 text-2xl cursor-pointer transition duration-300' />
             </main>
         </div>
     )
