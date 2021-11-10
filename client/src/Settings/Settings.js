@@ -50,26 +50,32 @@ const Settings = () => {
         return () => { isMounted = false };
     }, [history, uid, profChanged]);
 
-    const uploadFile = (e) => {
+    const uploadFile = (e, track, callback) => {
         e.preventDefault();
         let file = e.target.files[0];
         let formData = new FormData();
         formData.append('file', file);
         console.log(formData);
-        fetch(`/api/edit/${uid}/uploadMainImage`, {
+        fetch(`/api/edit/${uid}/${track}`, {
             method: 'POST',
             body: formData
         })
         .then(resp => resp.json())
-        .then(data => {
-            if (data.errors) {
-                alert(data.errors);
-            }
-            else {
-                setProfile({...profile, topPic: data.url});
-            }
-        })
+        .then(callback)
     };
+
+    const uploadTopPic = (e) => {
+        uploadFile(e, 'uploadMainImage', (data) => {
+            if (data.errors) alert(data.errors);
+            else setProfile({...profile, topPic: data.url});
+        })
+    }
+    const uploadProfPic = (e) => {
+        uploadFile(e, 'uploadProfPic', (data) => {
+            if (data.errors) alert(data.errors);
+            else setProfile({...profile, profPic: data.url});
+        })
+    }
 
     const changePassword = () => {
         setPassError("");
@@ -139,10 +145,17 @@ const Settings = () => {
 
     return (
         <div className='relative flex flex-col' style={{height: '100vh'}}>
-            <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadFile} />
+            <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadTopPic} />
 
-            <div className='flex flex-grow justify-center items-start'>
-                <table id='settings-table' className='mt-20'>
+            <div className='flex flex-grow flex-col items-center justify-start'>
+                <img
+                    onClick={(e) => {e.stopPropagation(); document.getElementById('profPicFileUpload').click()}}
+                    src={profile.profPic}
+                    alt="Profile page"
+                    className='w-32 h-32 object-cover mt-12 cursor-pointer rounded-full' />
+                <span onClick={(e) => {e.stopPropagation(); document.getElementById('profPicFileUpload').click()}} className='text-blue-700 cursor-pointer'>Change profile picture</span>
+                <input onChange={uploadProfPic} type="file" className="hidden" id="profPicFileUpload" accept="image/png, image/jpeg" />
+                <table id='settings-table' className='mt-5'>
                     <tbody>
                         {/* email */}
                         <tr>

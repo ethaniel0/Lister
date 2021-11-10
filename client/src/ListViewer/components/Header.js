@@ -10,12 +10,12 @@ const Header = ({ name, uid, listid, owner, topPic, profPic }) => {
                 onClick={() => history.push("/")}
                 src='/images/bilogo.png' 
                 alt="Bringit" 
-                className='absolute top-3 left-2 w-12 filter border-white border-2 rounded-full cursor-pointer' />
+                className='absolute top-3 left-2 w-12 h-12 object-cover filter border-white border-2 rounded-full cursor-pointer' />
             <img 
                 onClick={() => history.push("/profile/" + uid)}
                 src={profPic}
                 alt="Profile"
-                className='absolute top-3 left-16 w-12 cursor-pointer rounded-full' />
+                className='absolute top-3 left-16 w-12 h-12 object-cover cursor-pointer rounded-full' />
             {owner && <FaEdit onClick={() => history.push(`/makelist/${uid}/${listid}`)} className='absolute right-4 top-4 text-2xl cursor-pointer gear  bg-white box-content p-1 rounded-lg border-black border-2' />}
             
         </div>

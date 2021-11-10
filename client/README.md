@@ -1,7 +1,6 @@
 # TODO
 
 ## Settings Page
-- change profile picture
 - send validation email address
 - forgot password
 
@@ -31,3 +30,4 @@
 - change password
 - Change username
 - change email
+- change profile picture

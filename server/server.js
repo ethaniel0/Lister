@@ -137,6 +137,27 @@ app.post('/api/edit/:uid/uploadMainImage', (0, express_fileupload_1.default)(), 
         res.json({ url });
     });
 });
+app.post('/api/edit/:uid/uploadProfPic', (0, express_fileupload_1.default)(), async function (req, res) {
+    if (!req.files || !req.files.file)
+        return res.json({ error: 'image not supplied' });
+    let { uid } = req.params;
+    let id = req.cookies['id'];
+    let user = await (0, db_js_1.getUserProfile)(uid);
+    if (user === null)
+        return res.json({ error: "User doesn't exist" });
+    if (user.session != id)
+        return res.json({ error: "User not logged in / not correct account" });
+    let file = req.files.file;
+    let fileId = Math.round(Math.random() * 1e15);
+    let parts = file.name.split('.');
+    let name = fileId + '.' + parts[parts.length - 1];
+    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+        if (url.length > 0) {
+            (0, db_js_1.editUserField)(uid, 'profPic', url);
+        }
+        res.json({ url });
+    });
+});
 app.post('/api/profile/:uid/settings/setUsername', async function (req, res) {
     let { uid } = req.params;
     let { username } = req.body;
