@@ -1,0 +1,35 @@
+#settings-table {
+    font-size: 1.5rem;
+    border-collapse: separate !important;
+    border-spacing: 0;
+    box-sizing: border-box;
+    
+}
+#settings-table td {
+    padding: 1rem 2rem;
+    min-height: 4rem;
+}
+#settings-table tr td:nth-child(2) {
+    min-width: 30vw;
+}
+
+#settings-table tr:last-child td:first-child{
+    vertical-align: top;
+}
+#settings-table tr td:first-child {
+    border-right: 1px solid black;
+    text-align: right;
+}
+
+#settings-table tr:last-child td{
+    border-bottom: none;
+}
+
+
+#password-reset-inputs input {
+    background: #e2e2e2;
+    border-radius: 0.3rem;
+    margin: 0.25rem 0;
+    padding: 0.25rem;
+    outline: none;
+}

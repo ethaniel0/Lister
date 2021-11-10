@@ -170,6 +170,7 @@ export function makeID(length: number): string{
   return crypto.randomBytes(length).toString('hex');
 }
 
+// GET USER INFORMATION
 export async function getUser(selections: TypedObject<string>, all: boolean, collection?: boolean): Promise<Array<UserDoc>> {
   let arr: Array<UserDoc> = [];
   if (all){
@@ -195,7 +196,6 @@ export async function getUser(selections: TypedObject<string>, all: boolean, col
     return arr;
   }
 }
-
 export async function getUserProfile(uid: string): Promise<User | null>{
   let user = await Organizations.doc(uid).get();
   if (user.exists) return user.data() as User;
@@ -203,30 +203,94 @@ export async function getUserProfile(uid: string): Promise<User | null>{
   if (user.exists) return user.data() as User;
   return null;
 }
-
 export async function getUserList(uid: string, listid: string): Promise<UserList | null>{
   let user: User | null = await getUserProfile(uid);
   if (user === null) return null;
   let list: UserList | undefined = user.personalLists.find(e => e.id === listid);
   return list || null;
 }
-
 export async function getList(id: string, viewable: boolean, isTemplate: boolean): Promise<List | null>{
   let list = await Lists.doc(id).get();
   if (list.exists) return list.data() as List;
   return null;
 }
+export async function getSession(uid: string, password: string): Promise<string>{
+  let user = await Users.doc(uid).get();
+  let data: User = user.data() as User;
+  if (await checkUser(data.name, password)){
+    if (data.session) return data.session;
+    let sessionID = makeID(36);
+    await Users.doc(uid).update({
+      session: sessionID
+    });
+    return sessionID;
+  }
+  else return "";
+}
 
+// EDIT USER INFORMATION
+export async function updateUserProgress(uid: string, listid: string, sid: string, tid: string, checked: boolean): Promise<boolean>{
+  let upd: any = {};
+  upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
+  await Users.doc(uid).update(upd);
+  return true;
+}
+export async function saveNewUser(email: string, name: string, password: string, payType: string, acctType: boolean, creditcard: Creditcard): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | undefined> {
+  let user: User = makeUser(email, name, password, payType, acctType, creditcard);
+  var res;
+  if (acctType) {
+    res = await Organizations.add(user);
+  }
+  else {
+    if (await userExists({ email: email, name: name })) return;
+    res = await Users.add(user);
+  }
+  return res;
+}
+export async function saveTemplate(name: string, userID: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
+  let template: List = makeTemplate(name, userID, password);
+  let res = await PvTemplates.add(template);
+  return res;
+}
+export async function saveList(name: string, uid: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
+  let list: List = makeList(name, uid, password);
+  let res = await Lists.add(list);
+
+  let upd: UserList = {
+    id: res.id,
+    saveDate: list.saveDate,
+    viewable: false
+  };
+
+  let user = await Organizations.doc(uid).get();
+  if (user.exists) await Organizations.doc(uid).update({
+      personalLists: admin.firestore.FieldValue.arrayUnion(upd)
+    });
+  else {
+    user = await Users.doc(uid).get();
+    if (user.exists) await Users.doc(uid).update({
+      personalLists:  admin.firestore.FieldValue.arrayUnion(upd)
+    });
+  }
+  return res;
+}
+export async function editUserField(uid: string, field: string, value: string): Promise<boolean>{
+  let upd: any = {};
+  upd[field] = value;
+  await Users.doc(uid).update(upd);
+  return true;
+}
+
+// EDIT LIST INFORMATION
 export function deleteList(listid: string){
   Lists.doc(listid).delete();
 }
-export function changeListField(ul: UserList, listid: string, field: string, value: string){
+export function changeListField(listid: string, field: string, value: string){
   let upd: any = {};
   upd[field] = value;
   Lists.doc(listid).update(upd);
 }
-export async function newSection(ul: UserList, listid: string, index: number, color: string): Promise<TypedObject<string>>{
-  if (!ul) return {};
+export async function newSection(listid: string, index: number, color: string): Promise<TypedObject<string>>{
   let update: any = {}; // add either a section or option to a section
   let id: string = makeID(8);
   let tid: string = makeID(8);
@@ -236,16 +300,13 @@ export async function newSection(ul: UserList, listid: string, index: number, co
   Lists.doc(listid).update(update);
   return {id, tid};
 }
-export async function editSection(ul: UserList, listid: string, sid: string, field: string, value: any): Promise<boolean>{
-  if (!ul) return false;
+export async function editSection(listid: string, sid: string, field: string, value: any): Promise<boolean>{
   let update: any = {};
   update[`sections.${sid}.${field}`] = value;
   Lists.doc(listid).update(update);
   return true;
 }
-export async function deleteSection(ul: UserList, list: List | null, listid: string, sid: string): Promise<boolean>{
-  if (!ul) return false;
-  
+export async function deleteSection(list: List | null, listid: string, sid: string): Promise<boolean>{
   if (list === null || !(sid in list.sections)) return false;
   delete list.sections[sid];
   let secs = Object.values(list.sections);
@@ -266,8 +327,8 @@ export async function deleteSection(ul: UserList, list: List | null, listid: str
   return true;
 }
 
-export async function newItem(ul: UserList | null, list: List | null, listid: string, sid: string, index: number): Promise<string>{
-  if (!ul || list === null) return '';
+export async function newItem(list: List | null, listid: string, sid: string, index: number): Promise<string>{
+  if (list === null) return '';
   let update: any = {}; // add either a section or option to a section
   let tid: string = makeID(8);
   let items = Object.values(list.sections[sid].items);
@@ -318,55 +379,9 @@ export async function deleteItem(uid: string, listid: string, sid: string, tid: 
   return true;
 }
 
-export async function updateUserProgress(uid: string, listid: string, sid: string, tid: string, checked: boolean): Promise<boolean>{
-  let upd: any = {};
-  upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
-  await Users.doc(uid).update(upd);
-  return true;
-}
 
-export async function saveNewUser(email: string, name: string, password: string, payType: string, acctType: boolean, creditcard: Creditcard): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | undefined> {
-  let user: User = makeUser(email, name, password, payType, acctType, creditcard);
-  var res;
-  if (acctType) {
-    res = await Organizations.add(user);
-  }
-  else {
-    if (await userExists({ email: email, name: name })) return;
-    res = await Users.add(user);
-  }
-  return res;
-}
 
-export async function saveTemplate(name: string, userID: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
-  let template: List = makeTemplate(name, userID, password);
-  let res = await PvTemplates.add(template);
-  return res;
-}
-
-export async function saveList(name: string, uid: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
-  let list: List = makeList(name, uid, password);
-  let res = await Lists.add(list);
-
-  let upd: UserList = {
-    id: res.id,
-    saveDate: list.saveDate,
-    viewable: false
-  };
-
-  let user = await Organizations.doc(uid).get();
-  if (user.exists) await Organizations.doc(uid).update({
-      personalLists: admin.firestore.FieldValue.arrayUnion(upd)
-    });
-  else {
-    user = await Users.doc(uid).get();
-    if (user.exists) await Users.doc(uid).update({
-      personalLists:  admin.firestore.FieldValue.arrayUnion(upd)
-    });
-  }
-  return res;
-}
-
+// OTHER DATABASE FUNCTIONS
 export async function uploadImage(name: string, file: fileUpload.UploadedFile, ext: string, callback: Function): Promise<void>{
   file.name = name;
 
@@ -399,19 +414,7 @@ export async function uploadImage(name: string, file: fileUpload.UploadedFile, e
   // console.log(json);
 }
 
-export async function getSession(uid: string, password: string): Promise<string>{
-  let user = await Users.doc(uid).get();
-  let data: User = user.data() as User;
-  if (await checkUser(data.name, password)){
-    if (data.session) return data.session;
-    let sessionID = makeID(36);
-    await Users.doc(uid).update({
-      session: sessionID
-    });
-    return sessionID;
-  }
-  else return "";
-}
+
 
 export async function checkUserCookie(uid: string, session: string): Promise<UserDoc | false> {
   let user: UserDoc[] = await getUser({'.id': uid}, false);

@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.getSession = exports.uploadImage = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -118,6 +118,7 @@ function makeID(length) {
     return crypto.randomBytes(length).toString('hex');
 }
 exports.makeID = makeID;
+// GET USER INFORMATION
 async function getUser(selections, all, collection) {
     let arr = [];
     if (all) {
@@ -171,19 +172,92 @@ async function getList(id, viewable, isTemplate) {
     return null;
 }
 exports.getList = getList;
+async function getSession(uid, password) {
+    let user = await Users.doc(uid).get();
+    let data = user.data();
+    if (await checkUser(data.name, password)) {
+        if (data.session)
+            return data.session;
+        let sessionID = makeID(36);
+        await Users.doc(uid).update({
+            session: sessionID
+        });
+        return sessionID;
+    }
+    else
+        return "";
+}
+exports.getSession = getSession;
+// EDIT USER INFORMATION
+async function updateUserProgress(uid, listid, sid, tid, checked) {
+    let upd = {};
+    upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
+    await Users.doc(uid).update(upd);
+    return true;
+}
+exports.updateUserProgress = updateUserProgress;
+async function saveNewUser(email, name, password, payType, acctType, creditcard) {
+    let user = makeUser(email, name, password, payType, acctType, creditcard);
+    var res;
+    if (acctType) {
+        res = await Organizations.add(user);
+    }
+    else {
+        if (await userExists({ email: email, name: name }))
+            return;
+        res = await Users.add(user);
+    }
+    return res;
+}
+exports.saveNewUser = saveNewUser;
+async function saveTemplate(name, userID, password) {
+    let template = makeTemplate(name, userID, password);
+    let res = await PvTemplates.add(template);
+    return res;
+}
+exports.saveTemplate = saveTemplate;
+async function saveList(name, uid, password) {
+    let list = makeList(name, uid, password);
+    let res = await Lists.add(list);
+    let upd = {
+        id: res.id,
+        saveDate: list.saveDate,
+        viewable: false
+    };
+    let user = await Organizations.doc(uid).get();
+    if (user.exists)
+        await Organizations.doc(uid).update({
+            personalLists: admin.firestore.FieldValue.arrayUnion(upd)
+        });
+    else {
+        user = await Users.doc(uid).get();
+        if (user.exists)
+            await Users.doc(uid).update({
+                personalLists: admin.firestore.FieldValue.arrayUnion(upd)
+            });
+    }
+    return res;
+}
+exports.saveList = saveList;
+async function editUserField(uid, field, value) {
+    let upd = {};
+    upd[field] = value;
+    await Users.doc(uid).update(upd);
+    return true;
+}
+exports.editUserField = editUserField;
+// EDIT LIST INFORMATION
 function deleteList(listid) {
     Lists.doc(listid).delete();
 }
 exports.deleteList = deleteList;
-function changeListField(ul, listid, field, value) {
+function changeListField(listid, field, value) {
     let upd = {};
     upd[field] = value;
     Lists.doc(listid).update(upd);
 }
 exports.changeListField = changeListField;
-async function newSection(ul, listid, index, color) {
-    if (!ul)
-        return {};
+async function newSection(listid, index, color) {
     let update = {}; // add either a section or option to a section
     let id = makeID(8);
     let tid = makeID(8);
@@ -194,18 +268,14 @@ async function newSection(ul, listid, index, color) {
     return { id, tid };
 }
 exports.newSection = newSection;
-async function editSection(ul, listid, sid, field, value) {
-    if (!ul)
-        return false;
+async function editSection(listid, sid, field, value) {
     let update = {};
     update[`sections.${sid}.${field}`] = value;
     Lists.doc(listid).update(update);
     return true;
 }
 exports.editSection = editSection;
-async function deleteSection(ul, list, listid, sid) {
-    if (!ul)
-        return false;
+async function deleteSection(list, listid, sid) {
     if (list === null || !(sid in list.sections))
         return false;
     delete list.sections[sid];
@@ -224,8 +294,8 @@ async function deleteSection(ul, list, listid, sid) {
     return true;
 }
 exports.deleteSection = deleteSection;
-async function newItem(ul, list, listid, sid, index) {
-    if (!ul || list === null)
+async function newItem(list, listid, sid, index) {
+    if (list === null)
         return '';
     let update = {}; // add either a section or option to a section
     let tid = makeID(8);
@@ -280,56 +350,7 @@ async function deleteItem(uid, listid, sid, tid) {
     return true;
 }
 exports.deleteItem = deleteItem;
-async function updateUserProgress(uid, listid, sid, tid, checked) {
-    let upd = {};
-    upd[`listProgress.${listid}.${sid}.${tid}`] = checked;
-    await Users.doc(uid).update(upd);
-    return true;
-}
-exports.updateUserProgress = updateUserProgress;
-async function saveNewUser(email, name, password, payType, acctType, creditcard) {
-    let user = makeUser(email, name, password, payType, acctType, creditcard);
-    var res;
-    if (acctType) {
-        res = await Organizations.add(user);
-    }
-    else {
-        if (await userExists({ email: email, name: name }))
-            return;
-        res = await Users.add(user);
-    }
-    return res;
-}
-exports.saveNewUser = saveNewUser;
-async function saveTemplate(name, userID, password) {
-    let template = makeTemplate(name, userID, password);
-    let res = await PvTemplates.add(template);
-    return res;
-}
-exports.saveTemplate = saveTemplate;
-async function saveList(name, uid, password) {
-    let list = makeList(name, uid, password);
-    let res = await Lists.add(list);
-    let upd = {
-        id: res.id,
-        saveDate: list.saveDate,
-        viewable: false
-    };
-    let user = await Organizations.doc(uid).get();
-    if (user.exists)
-        await Organizations.doc(uid).update({
-            personalLists: admin.firestore.FieldValue.arrayUnion(upd)
-        });
-    else {
-        user = await Users.doc(uid).get();
-        if (user.exists)
-            await Users.doc(uid).update({
-                personalLists: admin.firestore.FieldValue.arrayUnion(upd)
-            });
-    }
-    return res;
-}
-exports.saveList = saveList;
+// OTHER DATABASE FUNCTIONS
 async function uploadImage(name, file, ext, callback) {
     file.name = name;
     let newFile = Bucket.file(`images/${name}`);
@@ -356,22 +377,6 @@ async function uploadImage(name, file, ext, callback) {
     // console.log(json);
 }
 exports.uploadImage = uploadImage;
-async function getSession(uid, password) {
-    let user = await Users.doc(uid).get();
-    let data = user.data();
-    if (await checkUser(data.name, password)) {
-        if (data.session)
-            return data.session;
-        let sessionID = makeID(36);
-        await Users.doc(uid).update({
-            session: sessionID
-        });
-        return sessionID;
-    }
-    else
-        return "";
-}
-exports.getSession = getSession;
 async function checkUserCookie(uid, session) {
     let user = await getUser({ '.id': uid }, false);
     return (user.length > 0 && user[0].user.session == session) ? user[0] : false;

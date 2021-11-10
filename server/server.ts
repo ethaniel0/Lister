@@ -1,7 +1,7 @@
 import express from "express";
 import fileUpload from 'express-fileupload';
 const cookieParser = require('cookie-parser');
-import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, UserDoc, getSession, 
+import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, editUserField, UserDoc, getSession, 
 		saveList, checkUserCookie, changeListField, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
 		updateUserProgress, uploadImage, deleteList} from "./db.js";
 
@@ -57,6 +57,45 @@ app.get('/api/profile/:uid', async (req, res) => {
 	}
     res.json(filtered);
 });
+app.get('/api/profile/:uid/settings', async (req, res) => {
+    let { uid } = req.params;
+    let id = req.cookies['id'];
+    let user: User | null = await getUserProfile(uid);
+    if (user === null) return res.json({error: "User doesn't exist"});
+	if (user.session != id) return res.json({error: "User not logged in / not correct account"});
+    let details: any = {
+        name: user.name,
+        profPic: user.profPic,
+        topPic: user.topPic,
+		email: user.email,
+		plan: user.plan
+    }
+
+    res.json(details);
+});
+app.post('/api/edit/:uid/uploadMainImage', fileUpload(), async function(req, res) {
+	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
+	let { uid } = req.params;
+    let id = req.cookies['id'];
+    let user: User | null = await getUserProfile(uid);
+    if (user === null) return res.json({error: "User doesn't exist"});
+	if (user.session != id) return res.json({error: "User not logged in / not correct account"});
+
+	let file = req.files.file as fileUpload.UploadedFile;
+
+	let fileId = Math.round(Math.random()*1e15);
+	let parts = file.name.split('.');
+	let name = fileId + '.' + parts[parts.length - 1];
+	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
+		if (url.length > 0){
+			editUserField(uid, 'topPic', url);
+			console.log(url);
+		}
+		res.json({ url });
+	});
+})
+
+
 app.get('/api/list/:listid', async (req, res) => {
 	let { listid } = req.params;
 	let id = req.cookies['id'];
@@ -157,7 +196,7 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
 	let { name } = req.body;
 	let { session, user, ul } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
-	changeListField(ul as UserList, listid, 'name', name);
+	changeListField(listid, 'name', name);
 	return res.json({'success': true});
 });
 app.post('/api/deleteList/:uid/:listid/', async (req, res) => {
@@ -172,7 +211,7 @@ app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
 	let { color } = req.body;
 	let { session, user, list, ul } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
-	let ids = await newSection(ul as UserList, listid, Object.keys((list as List).sections).length, color);
+	let ids = await newSection(listid, Object.keys((list as List).sections).length, color);
 	if (!ids.id) return res.json({'error': 'Error adding section'});
 	return res.json(ids);
 });
@@ -181,26 +220,26 @@ app.post('/api/edit/:uid/:listid/editSection', async (req, res) => {
 	let { sid, field, value } = req.body;
 	let { session, user, ul } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
-	let worked = await editSection(ul as UserList, listid, sid, field, value);
+	let worked = await editSection(listid, sid, field, value);
 	if (!worked) return res.json({'error': 'Error adding section'});
 	return res.json({'success': worked});
-})
+});
 app.post('/api/edit/:uid/:listid/deleteSection', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { sid } = req.body;
 	let { session, user, list, ul } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
-	let worked = await deleteSection(ul as UserList, list, listid, sid);
+	let worked = await deleteSection(list, listid, sid);
 	if (!worked) return res.json({'error': 'Error deleting section'});
 	return res.json({'success': worked});
-})
+});
 app.post('/api/edit/:uid/:listid/addItem', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { sid, ind } = req.body;  
 	let { session, user, ul, list } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
 	if (!(sid in (list as List).sections)) return res.json({'error': 'Error adding section'});
-	let tid = await newItem(ul, list, listid, sid, ind);
+	let tid = await newItem(list, listid, sid, ind);
 	if (!tid) return res.json({'error': 'Error adding section'});
 	return res.json({ success: tid });
 });
@@ -212,7 +251,7 @@ app.post('/api/edit/:uid/:listid/editItem', async (req, res) => {
 	let worked = await editItem(uid, listid, sid, tid, value);
 	if (!worked) return res.json({'error': 'Error adding section'});
 	return res.json({'success': worked});
-})
+});
 app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { sid, tid } = req.body;
@@ -221,7 +260,7 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
 	let worked = await deleteItem(uid, listid, sid, tid);
 	if (!worked) return res.json({'error': 'Error deleting section'});
 	return res.json({'success': worked});
-})
+});
 app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(req, res) {
 	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
 	let { uid, listid } = req.params;
@@ -234,11 +273,11 @@ app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(r
 	let name = id + '.' + parts[parts.length - 1];
 	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
 		if (url.length > 0){
-			changeListField(ul as UserList, listid, 'topImage', url);
+			changeListField(listid, 'topImage', url);
 		}
 		res.json({ url });
 	});
-})
+});
 app.post('/api/edit/:uid/:listid/uploadCoverImage', fileUpload(), async function(req, res) {
 	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
 	let { uid, listid } = req.params;
@@ -251,17 +290,17 @@ app.post('/api/edit/:uid/:listid/uploadCoverImage', fileUpload(), async function
 	let name = id + '.' + parts[parts.length - 1];
 	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
 		if (url.length > 0){
-			changeListField(ul as UserList, listid, 'image', url);
+			changeListField(listid, 'image', url);
 		}
 		res.json({ url });
 	});
-})
+});
 app.post('/api/edit/:uid/:listid/setPublic', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { isPublic } = req.body;
 	let { session, user, ul } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
-	changeListField(ul as UserList, listid, 'public', isPublic);
+	changeListField(listid, 'public', isPublic);
 	return res.json({'success': true});
 });
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
@@ -279,7 +318,7 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 
 	await updateUserProgress(uid, listid, sid, tid, checked);
 	return res.json({'success': ''});
-})
+});
 
 
 

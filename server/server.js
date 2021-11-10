@@ -59,6 +59,45 @@ app.get('/api/profile/:uid', async (req, res) => {
     }
     res.json(filtered);
 });
+app.get('/api/profile/:uid/settings', async (req, res) => {
+    let { uid } = req.params;
+    let id = req.cookies['id'];
+    let user = await (0, db_js_1.getUserProfile)(uid);
+    if (user === null)
+        return res.json({ error: "User doesn't exist" });
+    if (user.session != id)
+        return res.json({ error: "User not logged in / not correct account" });
+    let details = {
+        name: user.name,
+        profPic: user.profPic,
+        topPic: user.topPic,
+        email: user.email,
+        plan: user.plan
+    };
+    res.json(details);
+});
+app.post('/api/edit/:uid/uploadMainImage', (0, express_fileupload_1.default)(), async function (req, res) {
+    if (!req.files || !req.files.file)
+        return res.json({ error: 'image not supplied' });
+    let { uid } = req.params;
+    let id = req.cookies['id'];
+    let user = await (0, db_js_1.getUserProfile)(uid);
+    if (user === null)
+        return res.json({ error: "User doesn't exist" });
+    if (user.session != id)
+        return res.json({ error: "User not logged in / not correct account" });
+    let file = req.files.file;
+    let fileId = Math.round(Math.random() * 1e15);
+    let parts = file.name.split('.');
+    let name = fileId + '.' + parts[parts.length - 1];
+    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+        if (url.length > 0) {
+            (0, db_js_1.editUserField)(uid, 'topPic', url);
+            console.log(url);
+        }
+        res.json({ url });
+    });
+});
 app.get('/api/list/:listid', async (req, res) => {
     let { listid } = req.params;
     let id = req.cookies['id'];
@@ -167,7 +206,7 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListField)(ul, listid, 'name', name);
+    (0, db_js_1.changeListField)(listid, 'name', name);
     return res.json({ 'success': true });
 });
 app.post('/api/deleteList/:uid/:listid/', async (req, res) => {
@@ -184,7 +223,7 @@ app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
     let { session, user, list, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let ids = await (0, db_js_1.newSection)(ul, listid, Object.keys(list.sections).length, color);
+    let ids = await (0, db_js_1.newSection)(listid, Object.keys(list.sections).length, color);
     if (!ids.id)
         return res.json({ 'error': 'Error adding section' });
     return res.json(ids);
@@ -195,7 +234,7 @@ app.post('/api/edit/:uid/:listid/editSection', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.editSection)(ul, listid, sid, field, value);
+    let worked = await (0, db_js_1.editSection)(listid, sid, field, value);
     if (!worked)
         return res.json({ 'error': 'Error adding section' });
     return res.json({ 'success': worked });
@@ -206,7 +245,7 @@ app.post('/api/edit/:uid/:listid/deleteSection', async (req, res) => {
     let { session, user, list, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.deleteSection)(ul, list, listid, sid);
+    let worked = await (0, db_js_1.deleteSection)(list, listid, sid);
     if (!worked)
         return res.json({ 'error': 'Error deleting section' });
     return res.json({ 'success': worked });
@@ -219,7 +258,7 @@ app.post('/api/edit/:uid/:listid/addItem', async (req, res) => {
         return res.json({ 'error': user });
     if (!(sid in list.sections))
         return res.json({ 'error': 'Error adding section' });
-    let tid = await (0, db_js_1.newItem)(ul, list, listid, sid, ind);
+    let tid = await (0, db_js_1.newItem)(list, listid, sid, ind);
     if (!tid)
         return res.json({ 'error': 'Error adding section' });
     return res.json({ success: tid });
@@ -259,7 +298,7 @@ app.post('/api/edit/:uid/:listid/uploadTopImage', (0, express_fileupload_1.defau
     let name = id + '.' + parts[parts.length - 1];
     (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.changeListField)(ul, listid, 'topImage', url);
+            (0, db_js_1.changeListField)(listid, 'topImage', url);
         }
         res.json({ url });
     });
@@ -277,7 +316,7 @@ app.post('/api/edit/:uid/:listid/uploadCoverImage', (0, express_fileupload_1.def
     let name = id + '.' + parts[parts.length - 1];
     (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.changeListField)(ul, listid, 'image', url);
+            (0, db_js_1.changeListField)(listid, 'image', url);
         }
         res.json({ url });
     });
@@ -288,7 +327,7 @@ app.post('/api/edit/:uid/:listid/setPublic', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListField)(ul, listid, 'public', isPublic);
+    (0, db_js_1.changeListField)(listid, 'public', isPublic);
     return res.json({ 'success': true });
 });
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {

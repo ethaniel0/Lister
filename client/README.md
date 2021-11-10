@@ -1,14 +1,9 @@
 # TODO
 
-## Profile
-
-
 ## Settings Page
 - Change username
 - change password
 - change profile picture
-- change top bar picture
-
 
 
 ## Browse
@@ -27,3 +22,6 @@
 - only show private lists if you're logged in
 - edit main picture
 - make lists private or public
+
+## Settings Page
+- change top bar picture
