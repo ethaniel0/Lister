@@ -7,18 +7,26 @@ const Settings = () => {
     const { uid } = useParams();
     const history = useHistory();
     const [profile, setProfile] = useState({
-        name: "Duke University",
+        name: "",
         profPic: "/images/pfpic.png",
         topPic: "https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg",
         email: "",
         plan: ""
     });
     const [profChanged, setChange] = useState(false);
+
     const [passError, setPassError] = useState('');
     const [passSuccess, setPassSuccess] = useState(false);
+
     const [curPass, setCurPass] = useState("");
     const [newPass, setNewPass] = useState("");
     const [confPass, setConfPass] = useState("");
+
+    const [unameError, setUnameError] = useState('');
+    const [unameSuccess, setUnameSuccess] = useState(false);
+
+    const [username, setUsername] = useState("");
+    const [changeUsername, setchangeUsername] = useState("");
 
     function toTitleCase(str) {
         return str.replace(
@@ -84,6 +92,27 @@ const Settings = () => {
         });
     }
 
+    const subChangeUsername = () => {
+        setUnameError("");
+        fetch('/api/profile/' + uid + '/settings/setUsername', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        }).then(res => res.json()).then(json => {
+            if ('error' in json){
+                setUnameError(json.error);
+                setUnameSuccess(false);
+            }
+            else if ('success' in json){
+                setUnameError(json.success);
+                setUnameSuccess(true);
+                setProfile({...profile, name: username});
+            }
+        });
+    }
+
     return (
         <div className='relative flex flex-col' style={{height: '100vh'}}>
             <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadFile} />
@@ -100,9 +129,18 @@ const Settings = () => {
                         </tr>
                         <tr>
                             <td>Username</td>
-                            <td className='flex items-center'>
-                                <span>{profile.name}</span>
-                                <button className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
+                            <td className='flex flex-col'>
+                                <div>
+                                    <span>{profile.name}</span>
+                                    <button onClick={() => {setchangeUsername(true)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
+                                </div>
+                                <div className={'text-base flex flex-col' + (changeUsername ? '' : ' hidden')}>
+                                    <span className={unameSuccess ? 'text-green-500' : 'text-red-500'}>{unameError}</span>
+                                    <input onChange={(e) => setUsername(e.target.value)} id='change-username'  type="text" placeholder='New username' value={username} />
+                                    <div>
+                                        <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update password</button>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         <tr>

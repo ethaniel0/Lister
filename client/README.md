@@ -1,7 +1,6 @@
 # TODO
 
 ## Settings Page
-- Change username
 - change profile picture
 
 
@@ -25,3 +24,4 @@
 ## Settings Page
 - change top bar picture
 - change password
+- Change username

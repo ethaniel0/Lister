@@ -137,6 +137,25 @@ app.post('/api/edit/:uid/uploadMainImage', (0, express_fileupload_1.default)(), 
         res.json({ url });
     });
 });
+app.post('/api/profile/:uid/settings/setUsername', async function (req, res) {
+    let { uid } = req.params;
+    let { username } = req.body;
+    let id = req.cookies['id'];
+    let user = await (0, db_js_1.getUserProfile)(uid);
+    if (user === null)
+        return res.json({ error: "User doesn't exist" });
+    if (user.session != id)
+        return res.json({ error: "User not logged in / not correct account" });
+    if (username.length == 0)
+        return res.json({ error: "New username not entered" });
+    if (username == user.name)
+        return res.json({ error: "New username cannot be the same as the current username" });
+    let us = await (0, db_js_1.getUser)({ name: username }, false);
+    if (us.length > 0)
+        return res.json({ error: "Username is taken" });
+    (0, db_js_1.editUserField)(uid, 'name', username);
+    res.json({ success: "Username changed successfully!" });
+});
 app.post('/api/profile/:uid/settings/setPassword', async function (req, res) {
     let { uid } = req.params;
     let { curPassword, newPassword, confPassword } = req.body;
