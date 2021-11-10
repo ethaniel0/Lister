@@ -1,4 +1,5 @@
 import { useHistory } from "react-router-dom";
+import { FaDoorOpen } from 'react-icons/fa';
 
 const Header = ({ uid, topPic, profPic, uploadFile }) => {
     const history = useHistory();
@@ -16,6 +17,7 @@ const Header = ({ uid, topPic, profPic, uploadFile }) => {
                 alt="Profile page"
                 className='absolute top-3 left-16 w-12 h-12 object-cover cursor-pointer rounded-full' />
             <span onClick={(e) => {e.stopPropagation(); document.getElementById('fileUpload').click()}} style={{top: 'calc(100% + 0.5rem)'}} className='absolute left-4 text-blue-700 cursor-pointer'>Change Top Image</span>
+            <FaDoorOpen onClick={(e) => {e.stopPropagation(); history.push(`/profile/${uid}`)}} className='absolute right-4 top-4 text-2xl cursor-pointer gear bg-white box-content p-1 rounded-lg border-black border-2' />
         </div>
     )
 }

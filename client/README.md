@@ -1,5 +1,9 @@
 # TODO
 
+## Server
+- username requirements
+- password requirements
+
 ## Settings Page
 - send validation email address
 - forgot password
