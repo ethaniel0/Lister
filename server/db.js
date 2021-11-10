@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -246,6 +246,13 @@ async function editUserField(uid, field, value) {
     return true;
 }
 exports.editUserField = editUserField;
+async function setUserPassword(uid, password) {
+    let [hash, salt] = hashPassword(password);
+    editUserField(uid, 'password', hash);
+    editUserField(uid, 'salt', salt);
+    return true;
+}
+exports.setUserPassword = setUserPassword;
 // EDIT LIST INFORMATION
 function deleteList(listid) {
     Lists.doc(listid).delete();

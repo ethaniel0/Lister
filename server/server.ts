@@ -1,7 +1,7 @@
 import express from "express";
 import fileUpload from 'express-fileupload';
 const cookieParser = require('cookie-parser');
-import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, editUserField, UserDoc, getSession, 
+import {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, editUserField, setUserPassword, UserDoc, getSession, 
 		saveList, checkUserCookie, changeListField, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
 		updateUserProgress, uploadImage, deleteList} from "./db.js";
 
@@ -31,6 +31,42 @@ app.get('/api', (req, res) => {
     res.json({message: "hello michael"});
 });
 
+// LOGIN / LOGOUT
+app.post('/api/login', async (req, res) => {
+    let body = req.body;
+	if (!body.login){ // signing up
+		// check for errors: not an email, no confirmation password, passwords don't match, password is less than 6 characters, user already exists
+		if (!validateEmail(body.username)) return res.json({ error: "You must enter a valid email address" });
+		else if (body.pass2.length == 0) return res.json({ error: "Password confirmation must be filled" });
+		else if (body.pass2 != body.password) return res.json({ error: "Passwords must match" });
+		else if (body.password.length < 6) return res.json({ error: "Password must be at least 6 characters long" });
+		else if (await userExists({email: body.username})) return res.json({ error: "A user already exists with this email" });
+
+		// save the user
+		await saveNewUser(body.username, body.username.split('@')[0], body.password, 'free', false, {cvv: "", number: ""});	
+		return res.json({ success: "Your account was created! Check your inbox for a confirmation email." });
+	}
+	else {
+		let resp = await checkUser(body.username, body.password);
+		if ( resp === 0 ) return res.json({ error: "No account exists with this email / username" });
+		else if (resp === false) return res.json({ error: "Incorrect password." });
+		let user: UserDoc = (await getUser({email: body.username, name: body.username}, false))[0];
+
+		let session = await getSession(user.id, body.password);
+		if (session.length > 0){
+			res.cookie('id', session, {httpOnly: true});
+			res.cookie('uid', user.id, {httpOnly: true});
+		}
+		return res.json({ success: "/profile/" + user.id });
+	}
+});
+app.get('/logout', (req, res) => {
+	res.clearCookie('id');
+	res.clearCookie('uid');
+	res.send("");
+});
+
+// PROFILE ACCESS / MODIFICATION
 app.get('/api/profile/:uid', async (req, res) => {
     let { uid } = req.params;
     let id = req.cookies['id'];
@@ -89,13 +125,33 @@ app.post('/api/edit/:uid/uploadMainImage', fileUpload(), async function(req, res
 	uploadImage(name, file, parts[parts.length - 1], (url: string) => {
 		if (url.length > 0){
 			editUserField(uid, 'topPic', url);
-			console.log(url);
 		}
 		res.json({ url });
 	});
 })
+app.post('/api/profile/:uid/settings/setPassword', async function(req, res) {
+	let { uid } = req.params;
+	let { curPassword, newPassword, confPassword } = req.body;
+    let id = req.cookies['id'];
+    let user: User | null = await getUserProfile(uid);
+    if (user === null) return res.json({error: "User doesn't exist"});
+	if (user.session != id) return res.json({error: "User not logged in / not correct account"});
 
+	if (curPassword.length == 0) return res.json({ error: "Nothing entered for current password" });
+	if (newPassword.length == 0) return res.json({ error: "Nothing entered for new password" });
+	if (confPassword.length == 0) return res.json({ error: "Nothing entered for confirm password" });
+	if (newPassword !== confPassword) return res.json({ error: "New password and confirmation password don't match" });
+	if (newPassword == curPassword) return res.json({ error: "New password cannot be the same as the current password" });
+	let resp = await checkUser(user.email, curPassword);
+	if ( resp === 0 ) return res.json({ error: "Current account doesn't exist" });
+	else if (resp === false) return res.json({ error: "Incorrect password" });
 
+	setUserPassword(uid, newPassword);
+	res.json({success: 'Password changed!'});
+	
+})
+
+// LIST DATA
 app.get('/api/list/:listid', async (req, res) => {
 	let { listid } = req.params;
 	let id = req.cookies['id'];
@@ -130,40 +186,7 @@ app.get('/api/viewer/:listid/getChecks', async (req, res) => {
 	if (user.session != session) return res.json({});
 	return res.json(user.listProgress[listid]);
 })
-app.get('/logout', (req, res) => {
-	res.clearCookie('id');
-	res.clearCookie('uid');
-	res.send("");
-});
 
-app.post('/api/login', async (req, res) => {
-    let body = req.body;
-	if (!body.login){ // signing up
-		// check for errors: not an email, no confirmation password, passwords don't match, password is less than 6 characters, user already exists
-		if (!validateEmail(body.username)) return res.send(JSON.stringify({ error: "You must enter a valid email address" }));
-		else if (body.pass2.length == 0) return res.send(JSON.stringify({ error: "Password confirmation must be filled" }));
-		else if (body.pass2 != body.password) return res.send(JSON.stringify({ error: "Passwords must match" }));
-		else if (body.password.length < 6) return res.send(JSON.stringify({ error: "Password must be at least 6 characters long" }));
-		else if (await userExists({email: body.username})) return res.send(JSON.stringify({ error: "A user already exists with this email" }));
-
-		// save the user
-		await saveNewUser(body.username, body.username.split('@')[0], body.password, 'free', false, {cvv: "", number: ""});	
-		return res.json({ success: "Your account was created! Check your inbox for a confirmation email." });
-	}
-	else {
-		let resp = await checkUser(body.username, body.password);
-		if ( resp === 0 ) return res.send(JSON.stringify({ error: "No account exists with this email / username" }));
-		else if (resp === false) return res.send(JSON.stringify({ error: "Incorrect password." }));
-		let user: UserDoc = (await getUser({email: body.username, name: body.username}, false))[0];
-
-		let session = await getSession(user.id, body.password);
-		if (session.length > 0){
-			res.cookie('id', session, {httpOnly: true});
-			res.cookie('uid', user.id, {httpOnly: true});
-		}
-		return res.json({ success: "/profile/" + user.id });
-	}
-});
 app.post('/api/newList/:uid', async (req, res) => {
 	let id = req.cookies['id'];
 	let {uid} = req.params;

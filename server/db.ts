@@ -280,6 +280,12 @@ export async function editUserField(uid: string, field: string, value: string): 
   await Users.doc(uid).update(upd);
   return true;
 }
+export async function setUserPassword(uid: string, password: string){
+  let [hash, salt] = hashPassword(password);
+  editUserField(uid, 'password', hash);
+  editUserField(uid, 'salt', salt);
+  return true;
+}
 
 // EDIT LIST INFORMATION
 export function deleteList(listid: string){

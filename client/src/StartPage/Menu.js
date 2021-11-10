@@ -8,7 +8,6 @@ const Menu = ({ uid, menu }) => {
 
     function logout(){
         fetch('/logout').then(() => history.push('/'));
-        console.log('logging out');
     }
 
     return (
@@ -17,7 +16,7 @@ const Menu = ({ uid, menu }) => {
             <hr />
             <Link to={'/profile/' + uid + '/settings'} className='text-center py-2 px-6 hover:bg-gray-200'>Settings</Link>
             <hr />
-            <span onClick={logout} className='text-red-500 text-center py-2 px-6 hover:bg-gray-200 rounded-b-md'>Log Out</span>
+            <span onClick={logout} className='text-red-500 text-center py-2 px-6 hover:bg-gray-200 rounded-b-md cursor-pointer'>Log Out</span>
         </div>
     )
 }

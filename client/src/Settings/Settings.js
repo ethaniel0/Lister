@@ -14,6 +14,11 @@ const Settings = () => {
         plan: ""
     });
     const [profChanged, setChange] = useState(false);
+    const [passError, setPassError] = useState('');
+    const [passSuccess, setPassSuccess] = useState(false);
+    const [curPass, setCurPass] = useState("");
+    const [newPass, setNewPass] = useState("");
+    const [confPass, setConfPass] = useState("");
 
     function toTitleCase(str) {
         return str.replace(
@@ -55,20 +60,33 @@ const Settings = () => {
         })
     };
 
-    const editName = (name) => {
-        setProfile({...profile, name: name});
-        fetch(`/api/edit/${uid}/editName`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name })
+    const changePassword = () => {
+        setPassError("");
+        fetch('/api/profile/' + uid + '/settings/setPassword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                curPassword: curPass, 
+                newPassword: newPass, 
+                confPassword: confPass
+            })
+        }).then(res => res.json()).then(json => {
+            if ('error' in json){
+                setPassError(json.error);
+                setPassSuccess(false);
+            }
+            else if ('success' in json){
+                setPassError(json.success);
+                setPassSuccess(true);
+            }
         });
-      }
+    }
 
     return (
         <div className='relative flex flex-col' style={{height: '100vh'}}>
-            <Header name={profile.name} uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadFile} setName={editName} />
+            <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadFile} />
 
             <div className='flex flex-grow justify-center items-start'>
                 <table id='settings-table' className='mt-20'>
@@ -98,11 +116,12 @@ const Settings = () => {
                         <tr>
                             <td>Reset Password</td>
                             <td id='password-reset-inputs' className='flex flex-col text-base'>
-                                <input type="text" placeholder='Old password' />
-                                <input type="text" placeholder='New password' />
-                                <input type="text" placeholder='Confirm password' />
+                                <span className={passSuccess ? 'text-green-500' : 'text-red-500'}>{passError}</span>
+                                <input onChange={(e) => setCurPass(e.target.value)} type="password" placeholder='Old password' value={curPass} />
+                                <input onChange={(e) => setNewPass(e.target.value)} type="password" placeholder='New password' value={newPass} />
+                                <input onChange={(e) => setConfPass(e.target.value)} type="password" placeholder='Confirm password' value={confPass} />
                                 <div className='flex justify-between mt-1'>
-                                    <button className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update password</button>
+                                    <button onClick={changePassword} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update password</button>
                                     <span className='text-blue-700  cursor-pointer'>I forgot my password</span>
                                 </div>
                             </td>

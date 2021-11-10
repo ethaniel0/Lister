@@ -1,6 +1,6 @@
 import { useHistory } from "react-router-dom";
 
-const Header = ({ name, uid, topPic, profPic, uploadFile, setName }) => {
+const Header = ({ uid, topPic, profPic, uploadFile }) => {
     const history = useHistory();
     return (
         <div onClick={(e) => {e.stopPropagation(); document.getElementById('fileUpload').click()}} style={{backgroundImage: ('url(' + topPic + ')'), backgroundSize: 'cover', backgroundPosition: 'center'}} className="h-32 w-full  flex justify-center relative">

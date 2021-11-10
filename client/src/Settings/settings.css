@@ -29,7 +29,13 @@
 #password-reset-inputs input {
     background: #e2e2e2;
     border-radius: 0.3rem;
-    margin: 0.25rem 0;
+    margin: calc(0.25rem - 2px) 0;
     padding: 0.25rem;
     outline: none;
+    border: 2px solid white;
+    transition: border ease 200ms;
+
+}
+#password-reset-inputs input:focus {
+    border: 2px solid rgb(200, 200, 200);
 }
