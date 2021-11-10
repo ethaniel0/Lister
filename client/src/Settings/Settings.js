@@ -17,16 +17,19 @@ const Settings = () => {
 
     const [passError, setPassError] = useState('');
     const [passSuccess, setPassSuccess] = useState(false);
-
     const [curPass, setCurPass] = useState("");
     const [newPass, setNewPass] = useState("");
     const [confPass, setConfPass] = useState("");
 
     const [unameError, setUnameError] = useState('');
     const [unameSuccess, setUnameSuccess] = useState(false);
-
     const [username, setUsername] = useState("");
-    const [changeUsername, setchangeUsername] = useState("");
+    const [changeUsername, setChangeUsername] = useState(false);
+
+    const [emailError, setEmailError] = useState('');
+    const [emailSuccess, setEmailSuccess] = useState(false);
+    const [email, setEmail] = useState("");
+    const [changeEmail, setChangeEmail] = useState(false);
 
     function toTitleCase(str) {
         return str.replace(
@@ -113,6 +116,27 @@ const Settings = () => {
         });
     }
 
+    const subChangeEmail = () => {
+        setEmailError("");
+        fetch('/api/profile/' + uid + '/settings/setEmail', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        }).then(res => res.json()).then(json => {
+            if ('error' in json){
+                setEmailError(json.error);
+                setEmailSuccess(false);
+            }
+            else if ('success' in json){
+                setEmailError(json.success);
+                setEmailSuccess(true);
+                setProfile({...profile, email: email});
+            }
+        });
+    }
+
     return (
         <div className='relative flex flex-col' style={{height: '100vh'}}>
             <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadFile} />
@@ -120,37 +144,51 @@ const Settings = () => {
             <div className='flex flex-grow justify-center items-start'>
                 <table id='settings-table' className='mt-20'>
                     <tbody>
+                        {/* email */}
                         <tr>
                             <td>Email</td>
-                            <td className='flex items-center'>
-                                <span>{profile.email}</span>
-                                <button className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change email</button>
+                            <td className='flex flex-col'>
+                                <div>
+                                    <span>{profile.email}</span>
+                                    <button onClick={() => {setChangeEmail(!changeEmail)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change email</button>
+                                </div>
+                                <div className={'text-base flex flex-col' + (changeEmail ? '' : ' hidden')}>
+                                    <span className={emailSuccess ? 'text-green-500' : 'text-red-500'}>{emailError}</span>
+                                    <input onChange={(e) => setEmail(e.target.value)} id='change-email' type="text" placeholder='New email' value={email} />
+                                    <div>
+                                        <button onClick={subChangeEmail} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update email</button>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
+                        {/* username */}
                         <tr>
                             <td>Username</td>
                             <td className='flex flex-col'>
                                 <div>
                                     <span>{profile.name}</span>
-                                    <button onClick={() => {setchangeUsername(true)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
+                                    <button onClick={() => {setChangeUsername(!changeUsername)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
                                 </div>
                                 <div className={'text-base flex flex-col' + (changeUsername ? '' : ' hidden')}>
                                     <span className={unameSuccess ? 'text-green-500' : 'text-red-500'}>{unameError}</span>
                                     <input onChange={(e) => setUsername(e.target.value)} id='change-username'  type="text" placeholder='New username' value={username} />
                                     <div>
-                                        <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update password</button>
+                                        <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update username</button>
                                     </div>
                                 </div>
                             </td>
                         </tr>
+                        {/* account type */}
                         <tr>
                             <td>Account Type</td>
                             <td><span>Personal</span> <span className='ml-4 text-base text-blue-700 cursor-pointer'>Start an organization</span></td>
                         </tr>
+                        {/* plan type */}
                         <tr>
                             <td>Plan</td>
                             <td><span>{toTitleCase(profile.plan)}</span> <span className='ml-4 text-base text-blue-700  cursor-pointer'>Get more out of Bringit</span></td>
                         </tr>
+                        {/* password */}
                         <tr>
                             <td>Reset Password</td>
                             <td id='password-reset-inputs' className='flex flex-col text-base'>

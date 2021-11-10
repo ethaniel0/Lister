@@ -2,7 +2,12 @@
 
 ## Settings Page
 - change profile picture
+- send validation email address
+- forgot password
 
+## Register for a different plan
+- make the page
+- display options (personal, public)
 
 ## Browse
 - entire browse page
@@ -25,3 +30,4 @@
 - change top bar picture
 - change password
 - Change username
+- change email

@@ -166,6 +166,23 @@ app.post('/api/profile/:uid/settings/setPassword', async function(req, res) {
 	res.json({success: 'Password changed!'});
 	
 })
+app.post('/api/profile/:uid/settings/setEmail', async function(req, res) {
+	let { uid } = req.params;
+	let { email } = req.body;
+    let id = req.cookies['id'];
+    let user: User | null = await getUserProfile(uid);
+    if (user === null) return res.json({error: "User doesn't exist"});
+	if (user.session != id) return res.json({error: "User not logged in / not correct account"});
+
+	if (email.length == 0) return res.json({ error: "New email not entered" });
+	if (email == user.email) return res.json({ error: "New email cannot be the same as the current email" });
+	if (!validateEmail(email)) return res.json({ error: "New email must have a valid address" });
+	let us: UserDoc[] = await getUser({email}, false);
+	if (us.length > 0) return res.json({ error: "email is currently in use" });
+
+	editUserField(uid, 'email', email);
+	res.json({ success: "Email changed successfully!" });
+})
 
 // LIST DATA
 app.get('/api/list/:listid', async (req, res) => {
