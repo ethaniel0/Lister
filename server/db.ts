@@ -287,6 +287,12 @@ export async function setUserPassword(uid: string, password: string){
   return true;
 }
 
+// SEARCH LISTS
+export function findLists(name: string){
+  
+
+}
+
 // EDIT LIST INFORMATION
 export function deleteList(listid: string){
   Lists.doc(listid).delete();

@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -253,6 +253,10 @@ async function setUserPassword(uid, password) {
     return true;
 }
 exports.setUserPassword = setUserPassword;
+// SEARCH LISTS
+function findLists(name) {
+}
+exports.findLists = findLists;
 // EDIT LIST INFORMATION
 function deleteList(listid) {
     Lists.doc(listid).delete();

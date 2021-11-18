@@ -22,20 +22,19 @@ main {
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
   -webkit-appearance: none;
   font-size: 1.1em;
-  border-radius: 1.5em;
   width: 90%;
   transition: box-shadow 1s ease;
 }
-#title-search:focus {
+#title-search:focus-within {
   box-shadow: 0px 5px 10px rgba(30, 144, 255, 0.5);
 }
  
-#title-search-container button {
-  top: -2.65rem;
-  left: calc(90% - 5em);
-  /* background: #1E90FF; */
-  box-shadow: 0px 4px 8px rgba(30, 144, 255, 0.5);
-  border-radius: 1.5em;
+#title-search button {
+  /* top: -2.65rem;
+  left: calc(90% - 5em); */
+  background: #1E90FF;
+  box-shadow: 0px 2px 6px rgba(30, 144, 255, 0.5);
+  /* border-radius: 1.5em; */
 }
 
 #new-list-button {

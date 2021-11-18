@@ -1,7 +1,8 @@
 import './StartPage.css';
 import { useState, useEffect } from 'react';
 import DemoCard from './DemoCard';
-import Header from './Header';
+import Header from '../global/Header';
+import { useHistory } from "react-router-dom";
 
 
 
@@ -38,6 +39,9 @@ function StartPage() {
             }
         ]
     });
+    const [search, editSearch] = useState("");
+
+    const history = useHistory();
 
     const [modal, showModal] = useState(false);
     const [loggedIn, setLogged] = useState(false);
@@ -54,7 +58,6 @@ function StartPage() {
 
     useEffect(() => {
         let isMounted = true;
-        console.log('fetching');
         fetch('/testsession').then(res => res.json()).then(json => {
             console.log(json);
             if (isMounted && !('error' in json)){
@@ -75,23 +78,33 @@ function StartPage() {
             showMenu(false);
         }
     };
+
+    const goToSearch = () => {
+        history.push('/search/' + search);
+    }
+
   return (
     <div onClick={bodyClick}>  
         <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} menu={menu} showMenu={showMenu} />
         
         <main className='text-center transition duration-300' style={{filter: (modal ? "blur(10px)" : 'blur(0)')}}>
+            {/* all content inside main */}
             <div id="cont" className='flex'>
+
+                {/* left side */}
                 <div className='n1 pl-20 flex items-center flex-grow' style={{height: '70vh', width: '100%'}}>
+                    {/* container so left-side content is vertically centered */}
                     <div className='text-left w-full'>
                         <h1 className="text-left w-full font-bold text-7xl mt-0 mb-4">Bring it.</h1>
                         <span className='block mb-16 text-4xl font-thin'>Know you're ready. For<br />Real this time.</span>
-                        <div id='title-search-container'>
-                            <input id='title-search' type='text' placeholder='Find Your Packing List' className='p-4 border-none block outline-none mb-0' />
-                            <button className='relative text-white border-none mt-0 bg-blue-500 py-2 px-5'>Search</button>
+                        <div id='title-search' className='flex rounded-full justify-between items-center px-2'>
+                            <input onChange={(e) => editSearch(e.target.value)} type='text' value={search} placeholder='Find Your Packing List' className='p-4 border-none block outline-none mb-0 rounded-full flex-grow' />
+                            <button onClick={goToSearch} className='relative text-white border-none mt-0 bg-blue-500 py-2 px-5 h-10 rounded-full shadow-lg'>Search</button>
                         </div>
                     </div>
                 </div>
                 
+                {/* right side with demo card */}
                 <div className='pr-20 flex items-center justify-center flex-grow'>
                     <DemoCard card={demo} onEdit={onEdit} />
                 </div>

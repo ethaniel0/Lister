@@ -102,7 +102,7 @@ const Settings = () => {
     }
 
     const subChangeUsername = () => {
-        setUnameError("");
+        // setUnameError("");
         fetch('/api/profile/' + uid + '/settings/setUsername', {
             method: 'POST',
             headers: {
@@ -117,13 +117,14 @@ const Settings = () => {
             else if ('success' in json){
                 setUnameError(json.success);
                 setUnameSuccess(true);
+                setChangeUsername(false);
                 setProfile({...profile, name: username});
             }
         });
     }
 
     const subChangeEmail = () => {
-        setEmailError("");
+        // setEmailError("");
         fetch('/api/profile/' + uid + '/settings/setEmail', {
             method: 'POST',
             headers: {
@@ -138,6 +139,7 @@ const Settings = () => {
             else if ('success' in json){
                 setEmailError(json.success);
                 setEmailSuccess(true);
+                setChangeEmail(false);
                 setProfile({...profile, email: email});
             }
         });
@@ -165,8 +167,9 @@ const Settings = () => {
                                     <span>{profile.email}</span>
                                     <button onClick={() => {setChangeEmail(!changeEmail)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change email</button>
                                 </div>
+                                <span className={'text-base ' + (emailSuccess ? 'text-green-500' : 'text-red-500')}>{emailError}</span>
                                 <div className={'text-base flex flex-col' + (changeEmail ? '' : ' hidden')}>
-                                    <span className={emailSuccess ? 'text-green-500' : 'text-red-500'}>{emailError}</span>
+                                    
                                     <input onChange={(e) => setEmail(e.target.value)} id='change-email' type="text" placeholder='New email' value={email} />
                                     <div>
                                         <button onClick={subChangeEmail} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update email</button>
@@ -182,8 +185,8 @@ const Settings = () => {
                                     <span>{profile.name}</span>
                                     <button onClick={() => {setChangeUsername(!changeUsername)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
                                 </div>
+                                <span className={'text-base ' + (unameSuccess ? 'text-green-500' : 'text-red-500')}>{unameError}</span>
                                 <div className={'text-base flex flex-col' + (changeUsername ? '' : ' hidden')}>
-                                    <span className={unameSuccess ? 'text-green-500' : 'text-red-500'}>{unameError}</span>
                                     <input onChange={(e) => setUsername(e.target.value)} id='change-username'  type="text" placeholder='New username' value={username} />
                                     <div>
                                         <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update username</button>

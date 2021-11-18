@@ -55,7 +55,7 @@ const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu }) => {
     return (
         <>
             <nav id='desktop-nav' className='absolute flex justify-between items-center sticky bg-white p-2 m-8 px-v5 box-border z-50'>
-                <span className='flex items-center'>
+                <span onClick={() => history.push('/')} className='flex items-center cursor-pointer'>
                     <img src="/images/bilogo.png" alt="logo" className="h-12 mr-2" />
                     <span className='font-medium text-2xl'>Bring It</span>
                 </span>

@@ -159,6 +159,7 @@ app.post('/api/profile/:uid/settings/setUsername', async function(req, res) {
 
 	if (username.length == 0) return res.json({ error: "New username not entered" });
 	if (username == user.name) return res.json({ error: "New username cannot be the same as the current username" });
+	if (username.length > 20) return res.json({ error: "Username is too long (max 20 characters)" });
 	let us: UserDoc[] = await getUser({name: username}, false);
 	if (us.length > 0) return res.json({ error: "Username is taken" });
 
@@ -178,6 +179,8 @@ app.post('/api/profile/:uid/settings/setPassword', async function(req, res) {
 	if (confPassword.length == 0) return res.json({ error: "Nothing entered for confirm password" });
 	if (newPassword !== confPassword) return res.json({ error: "New password and confirmation password don't match" });
 	if (newPassword == curPassword) return res.json({ error: "New password cannot be the same as the current password" });
+	if (newPassword.length < 6) return res.json({ error: "New password must have 6 or more chagacters" });
+
 	let resp = await checkUser(user.email, curPassword);
 	if ( resp === 0 ) return res.json({ error: "Current account doesn't exist" });
 	else if (resp === false) return res.json({ error: "Incorrect password" });
@@ -249,6 +252,11 @@ app.post('/api/newList/:uid', async (req, res) => {
 		return res.json({success: resp.id});
 	}
 	res.json({'error': '/'});
+});
+
+app.post('/api/search/:query', async (req, res) => {
+	let { query } = req.params;
+	return res.json({'success': ''});
 });
 
 function getListFromUser(user: User, listid: string): UserList | undefined{
