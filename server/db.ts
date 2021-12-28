@@ -247,11 +247,6 @@ export async function saveNewUser(email: string, name: string, password: string,
   }
   return res;
 }
-export async function saveTemplate(name: string, userID: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
-  let template: List = makeTemplate(name, userID, password);
-  let res = await PvTemplates.add(template);
-  return res;
-}
 export async function saveList(name: string, uid: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
   let list: List = makeList(name, uid, password);
   let res = await Lists.add(list);
