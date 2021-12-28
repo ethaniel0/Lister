@@ -23,10 +23,7 @@ const Bucket = admin.storage().bucket();
 const FieldValue = admin.firestore.FieldValue;
 
 const Users = Db.collection('Users');
-const Organizations = Db.collection('Organizations');
 const Lists = Db.collection('Lists');
-const PvTemplates = Db.collection('Private Templates');
-const PbTemplates = Db.collection('Public Templates');
 
 export interface Creditcard {
   cvv: string;
@@ -174,7 +171,7 @@ export function makeID(length: number): string{
 export async function getUser(selections: TypedObject<string>, all: boolean, collection?: boolean): Promise<Array<UserDoc>> {
   let arr: Array<UserDoc> = [];
   if (all){
-    let ref: any = collection ? Organizations : Users;
+    let ref: any = Users;
     for (let i in selections) ref = ref.where(i, '==', selections[i]);
     let snapshot = await ref.get();
     arr = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>) => ({ id: doc.id, user: doc.data() as User }))
@@ -183,11 +180,11 @@ export async function getUser(selections: TypedObject<string>, all: boolean, col
   else {
     for (let i in selections){
       if (i == '.id'){
-        let doc = await (collection ? Organizations : Users).doc(selections[i]).get();
+        let doc = await Users.doc(selections[i]).get();
         if (doc.exists) arr.push({ id: i, user: doc.data() as User });
         continue;
       }
-      let snapshot = await (collection ? Organizations : Users).where(i, '==', selections[i]).get();
+      let snapshot = await Users.where(i, '==', selections[i]).get();
       if (!snapshot.empty){
         let doc = snapshot.docs[0];
         arr.push({ id: doc.id, user: doc.data() as User })
@@ -197,9 +194,7 @@ export async function getUser(selections: TypedObject<string>, all: boolean, col
   }
 }
 export async function getUserProfile(uid: string): Promise<User | null>{
-  let user = await Organizations.doc(uid).get();
-  if (user.exists) return user.data() as User;
-  user = await Users.doc(uid).get();
+  let user = await Users.doc(uid).get();
   if (user.exists) return user.data() as User;
   return null;
 }
@@ -237,14 +232,8 @@ export async function updateUserProgress(uid: string, listid: string, sid: strin
 }
 export async function saveNewUser(email: string, name: string, password: string, payType: string, acctType: boolean, creditcard: Creditcard): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | undefined> {
   let user: User = makeUser(email, name, password, payType, acctType, creditcard);
-  var res;
-  if (acctType) {
-    res = await Organizations.add(user);
-  }
-  else {
-    if (await userExists({ email: email, name: name })) return;
-    res = await Users.add(user);
-  }
+  if (await userExists({ email: email, name: name })) return;
+  let res = await Users.add(user);
   return res;
 }
 export async function saveList(name: string, uid: string, password: string): Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>> {
@@ -256,17 +245,12 @@ export async function saveList(name: string, uid: string, password: string): Pro
     saveDate: list.saveDate,
     viewable: false
   };
-
-  let user = await Organizations.doc(uid).get();
-  if (user.exists) await Organizations.doc(uid).update({
-      personalLists: admin.firestore.FieldValue.arrayUnion(upd)
-    });
-  else {
-    user = await Users.doc(uid).get();
-    if (user.exists) await Users.doc(uid).update({
-      personalLists:  admin.firestore.FieldValue.arrayUnion(upd)
-    });
-  }
+  
+  let user = await Users.doc(uid).get();
+  if (user.exists) await Users.doc(uid).update({
+    personalLists:  admin.firestore.FieldValue.arrayUnion(upd)
+  });
+  
   return res;
 }
 export async function editUserField(uid: string, field: string, value: string): Promise<boolean>{

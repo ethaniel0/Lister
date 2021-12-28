@@ -32,7 +32,7 @@ const Browse = () => {
             console.log('TESTING');
             console.log(text);
         })
-        fetch('/testsession').then(res => res.text()).then(json => {
+        fetch('/testsession').then(res => res.json()).then(json => {
             console.log(json);
             if (isMounted && !('error' in json)){
                 console.log('logged in');
