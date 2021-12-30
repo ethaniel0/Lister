@@ -1,16 +1,21 @@
 /* text-red-400 bg-red-400 bg-red-500 border-red-400 border-red-500 text-pink-400 bg-pink-400 bg-pink-500 border-pink-400 border-pink-500 text-yellow-400 bg-yellow-400 bg-yellow-500 border-yellow-400 border-yellow-500 text-green-400 bg-green-400 bg-green-500 border-green-400 border-green-500 text-blue-400 bg-blue-400 bg-blue-500 border-blue-400 border-blue-500 text-indigo-400 bg-indigo-400 bg-indigo-500 border-indigo-400 border-indigo-500 text-purple-400 bg-purple-400 bg-purple-500 border-purple-400 border-purple-500 text-gray-400 bg-gray-400 bg-gray-500 border-gray-400 border-gray-500 */
 import './ListMaker.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { FaTimes } from 'react-icons/fa'
 import { useHistory, useParams } from "react-router-dom";
 import Header from './components/Header';
 import AddSection from './components/AddSection';
 import Card from './components/Card';
+import ContentEditable from 'react-contenteditable';
 
 function ListMaker() {
   const [sections, setSections] = useState([]);
   const [listName, setListName] = useState("");
   const [topPic, setTopPic] = useState("https://img.freepik.com/free-vector/gradient-dynamic-blue-lines-background_23-2148995756.jpg?size=626&ext=jpg");
   const [profPic, setProfPic] = useState('/images/pfpic.png');
+  const [tagtyping, setTagtyping] = useState('');
+  const [newTag, makeNewTag] = useState(false);
+  const [tags, setTags] = useState([]);
   const history = useHistory();
   const { uid, listid } = useParams();
   const trial = uid === undefined;
@@ -198,9 +203,61 @@ function ListMaker() {
       })
   }
 
+  const onRefChange = useCallback(node => {
+    if (node !== null) node.el.current.focus();
+  }, []); // adjust deps
+
+  const addTag = (str) => {
+    if (!tags.includes(str)) setTags([...tags, str]);
+  }
+
+  const removeTag = (ind) => {
+    setTags(tags.filter((e, i) => i !== ind));
+  }
+
+  const tagType = (e) => {
+    if (e.target.value.includes('<br>')){
+      addTag(tagtyping);
+      resetNewTag();
+    }
+    else setTagtyping(e.target.value);
+  }
+
+  const resetNewTag = () => {
+    makeNewTag(false);
+    setTagtyping('');
+  }
+
   return (
     <>
       <Header name={listName} setName={editName} setTopPic={setTopPic} profPic={profPic} topPic={topPic} uid={uid} listid={listid} />
+      <div className='text-center mt-4'>
+        <h1 className='text-2xl font-bold mb-4'>Tags</h1>
+        <div className='text-center'>
+          {
+            tags.map((t, i) => (
+              <span key={i} className={`inline-flex items-center py-1 px-2 rounded-lg text-sm mx-2 bg-red-200`} style={{border: '2px solid black'}}>
+                <span>{t}</span>
+                <FaTimes className='ml-2 cursor-pointer text-xs' onClick={() => removeTag(i)}>x</FaTimes>
+              </span>
+            ))
+          }
+          {
+            newTag ? <span className={`inline-flex items-center py-1 px-2 rounded-lg text-sm mx-2 bg-red-200`} style={{border: '2px dotted black'}}>
+              <ContentEditable 
+                   html={tagtyping}
+                   onChange={tagType}
+                   onClick={e => {e.stopPropagation();}}
+                   className='outline-none'
+                   placeholder='tag'
+                   ref={onRefChange}
+                  />
+              <FaTimes className='ml-2 cursor-pointer text-xs' onClick={resetNewTag}>x</FaTimes>
+            </span>
+            : <span className='cursor-pointer' onClick={() => makeNewTag(true)}>+ Add Tag</span>
+          }
+        </div>
+      </div>
       <div className='flex flex-wrap justify-around p-4 mt-8 font-sans'>
         {sections.map((sec) => (
           <Card key={sec.id} card={sec} onEdit={editSection} onAdd={addItem} onItemEdit={editItem} onDeleteItem={deleteItem} onDelete={deleteSection} />

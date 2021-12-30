@@ -1,4 +1,4 @@
-import { FaMinusCircle } from 'react-icons/fa'
+import { FaMinusCircle } from 'react-icons/fa';
 
 const Item = ({ color, focus, id, text, checked, onEdit, onDelete, addItem }) => {
     const colors = {
