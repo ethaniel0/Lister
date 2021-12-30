@@ -220,10 +220,11 @@ app.get('/api/list/:listid', async (req, res) => {
 	let ret = {
 		name: list.name, 
 		sections: list.sections,
+		tags: list.tags,
 		profPic: user?.profPic,
 		topPic: list.topImage,
 		owner: session === id,
-		checks: {}
+		checks: {},
 	};
 	if (user != null && session === id && id && uid) ret.checks = (user as User).listProgress[listid];
 	
@@ -345,6 +346,14 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
 	if (!worked) return res.json({'error': 'Error deleting section'});
 	return res.json({'success': worked});
 });
+app.post('/api/edit/:uid/:listid/addTag', async (req, res) => {
+	let { uid, listid } = req.params;
+	let { tags } = req.body;
+	let { session, user } = await checkList(req, res, uid, listid);
+	if (session === 'error') return res.json({'error': user});
+	changeListField(listid, 'tags', tags);
+	return res.json({'success': true});
+})
 app.post('/api/edit/:uid/:listid/uploadTopImage', fileUpload(), async function(req, res) {
 	if (!req.files || !req.files.file) return res.json({error: 'image not supplied'});
 	let { uid, listid } = req.params;
@@ -403,6 +412,7 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 	await updateUserProgress(uid, listid, sid, tid, checked);
 	return res.json({'success': ''});
 });
+
 
 
 

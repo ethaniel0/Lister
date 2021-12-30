@@ -61,6 +61,7 @@ export interface List {
   password: string;
   public: boolean;
   saveDate: admin.firestore.Timestamp;
+  tags: Array<string>;
   sections: {
     [key: string]: ListSection
   }
@@ -147,19 +148,8 @@ function makeList(name: string, owner: string, password: string): List{
     public: false,
     password: password || "",
     saveDate: admin.firestore.Timestamp.fromDate(new Date()),
-    sections: {}
-  };
-}
-function makeTemplate(name:string, owner:string, password:string): List{
-  return {
-    image: "",
-    topImage: "",
-    name: name,
-    owner: owner,
-    public: false,
-    password: password || "",
-    saveDate: admin.firestore.Timestamp.fromDate(new Date()),
-    sections: {}
+    sections: {},
+    tags: []
   };
 }
 
@@ -370,8 +360,6 @@ export async function deleteItem(uid: string, listid: string, sid: string, tid: 
   return true;
 }
 
-
-
 // OTHER DATABASE FUNCTIONS
 export async function uploadImage(name: string, file: fileUpload.UploadedFile, ext: string, callback: Function): Promise<void>{
   file.name = name;
@@ -404,8 +392,6 @@ export async function uploadImage(name: string, file: fileUpload.UploadedFile, e
   // let json = await resp.json();
   // console.log(json);
 }
-
-
 
 export async function checkUserCookie(uid: string, session: string): Promise<UserDoc | false> {
   let user: UserDoc[] = await getUser({'.id': uid}, false);

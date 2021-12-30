@@ -33,6 +33,7 @@ function ListMaker() {
           setListName(json.name);
           setProfPic(json.profPic);
           setTopPic(json.topPic);
+          setTags(json.tags || []);
           let secs = Object.keys(json.sections).map(k => json.sections[k]);
           secs.sort((a, b) => a.index - b.index);
           for (let o of secs){
@@ -208,11 +209,28 @@ function ListMaker() {
   }, []); // adjust deps
 
   const addTag = (str) => {
-    if (!tags.includes(str)) setTags([...tags, str]);
+    let arr = [...tags, str];
+    if (!tags.includes(str)) setTags(arr);
+    fetch(`/api/edit/${uid}/${listid}/addTag`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tags: arr })
+    });
+
   }
 
   const removeTag = (ind) => {
-    setTags(tags.filter((e, i) => i !== ind));
+    let arr = tags.filter((e, i) => i !== ind);
+    setTags(arr);
+    fetch(`/api/edit/${uid}/${listid}/addTag`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tags: arr })
+    });
   }
 
   const tagType = (e) => {

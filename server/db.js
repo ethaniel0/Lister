@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveTemplate = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -39,10 +39,7 @@ const Db = admin.firestore();
 const Bucket = admin.storage().bucket();
 const FieldValue = admin.firestore.FieldValue;
 const Users = Db.collection('Users');
-const Organizations = Db.collection('Organizations');
 const Lists = Db.collection('Lists');
-const PvTemplates = Db.collection('Private Templates');
-const PbTemplates = Db.collection('Public Templates');
 async function userExists(anyOf) {
     for (let x in anyOf) {
         let snapshot = await Users.where(x, '==', anyOf[x]).get();
@@ -99,19 +96,8 @@ function makeList(name, owner, password) {
         public: false,
         password: password || "",
         saveDate: admin.firestore.Timestamp.fromDate(new Date()),
-        sections: {}
-    };
-}
-function makeTemplate(name, owner, password) {
-    return {
-        image: "",
-        topImage: "",
-        name: name,
-        owner: owner,
-        public: false,
-        password: password || "",
-        saveDate: admin.firestore.Timestamp.fromDate(new Date()),
-        sections: {}
+        sections: {},
+        tags: []
     };
 }
 function makeID(length) {
@@ -122,7 +108,7 @@ exports.makeID = makeID;
 async function getUser(selections, all, collection) {
     let arr = [];
     if (all) {
-        let ref = collection ? Organizations : Users;
+        let ref = Users;
         for (let i in selections)
             ref = ref.where(i, '==', selections[i]);
         let snapshot = await ref.get();
@@ -132,12 +118,12 @@ async function getUser(selections, all, collection) {
     else {
         for (let i in selections) {
             if (i == '.id') {
-                let doc = await (collection ? Organizations : Users).doc(selections[i]).get();
+                let doc = await Users.doc(selections[i]).get();
                 if (doc.exists)
                     arr.push({ id: i, user: doc.data() });
                 continue;
             }
-            let snapshot = await (collection ? Organizations : Users).where(i, '==', selections[i]).get();
+            let snapshot = await Users.where(i, '==', selections[i]).get();
             if (!snapshot.empty) {
                 let doc = snapshot.docs[0];
                 arr.push({ id: doc.id, user: doc.data() });
@@ -148,10 +134,7 @@ async function getUser(selections, all, collection) {
 }
 exports.getUser = getUser;
 async function getUserProfile(uid) {
-    let user = await Organizations.doc(uid).get();
-    if (user.exists)
-        return user.data();
-    user = await Users.doc(uid).get();
+    let user = await Users.doc(uid).get();
     if (user.exists)
         return user.data();
     return null;
@@ -198,24 +181,12 @@ async function updateUserProgress(uid, listid, sid, tid, checked) {
 exports.updateUserProgress = updateUserProgress;
 async function saveNewUser(email, name, password, payType, acctType, creditcard) {
     let user = makeUser(email, name, password, payType, acctType, creditcard);
-    var res;
-    if (acctType) {
-        res = await Organizations.add(user);
-    }
-    else {
-        if (await userExists({ email: email, name: name }))
-            return;
-        res = await Users.add(user);
-    }
+    if (await userExists({ email: email, name: name }))
+        return;
+    let res = await Users.add(user);
     return res;
 }
 exports.saveNewUser = saveNewUser;
-async function saveTemplate(name, userID, password) {
-    let template = makeTemplate(name, userID, password);
-    let res = await PvTemplates.add(template);
-    return res;
-}
-exports.saveTemplate = saveTemplate;
 async function saveList(name, uid, password) {
     let list = makeList(name, uid, password);
     let res = await Lists.add(list);
@@ -224,18 +195,11 @@ async function saveList(name, uid, password) {
         saveDate: list.saveDate,
         viewable: false
     };
-    let user = await Organizations.doc(uid).get();
+    let user = await Users.doc(uid).get();
     if (user.exists)
-        await Organizations.doc(uid).update({
+        await Users.doc(uid).update({
             personalLists: admin.firestore.FieldValue.arrayUnion(upd)
         });
-    else {
-        user = await Users.doc(uid).get();
-        if (user.exists)
-            await Users.doc(uid).update({
-                personalLists: admin.firestore.FieldValue.arrayUnion(upd)
-            });
-    }
     return res;
 }
 exports.saveList = saveList;
