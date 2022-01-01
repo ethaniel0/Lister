@@ -234,7 +234,7 @@ function ListMaker() {
   }
 
   const tagType = (e) => {
-    if (e.target.value.includes('<br>')){
+    if (e.target.value.includes('<')){
       addTag(tagtyping);
       resetNewTag();
     }

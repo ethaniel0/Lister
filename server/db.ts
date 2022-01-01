@@ -54,18 +54,21 @@ interface ListSection {
     };
 }
 export interface List {
+  id?: string;
   image: string;
-  topImage: string;
   name: string;
   owner: string;
   password: string;
   public: boolean;
   saveDate: admin.firestore.Timestamp;
-  tags: Array<string>;
   sections: {
     [key: string]: ListSection
-  }
-  id?: string;
+  };
+  tags: Array<string>;
+  topImage: string;
+  views: {
+    [key: string]: Array<string>
+  };
 }
 export interface UserList {
     id: string;
@@ -79,12 +82,10 @@ export interface User {
   name: string;
   password: string;
   personalLists: Array<UserList>;
-  personalTemplates: Array<UserList>;
   plan: string;
   profPic: string;
   salt: string;
   savedLists: Array<UserList>;
-  savedTemplates: Array<UserList>;
   session?: string;
   timeLastPaid: admin.firestore.Timestamp,
   topPic: string;
@@ -128,14 +129,12 @@ function makeUser(email: string, name: string, password: string, payType: string
     name: name,
     password: hash,
     personalLists: [],
-    personalTemplates: [],
     plan: payType,
-    profPic: "",
+    profPic: "/images/pfpic.png",
     salt: salt,
     savedLists: [],
-    savedTemplates: [],
     timeLastPaid: admin.firestore.Timestamp.fromDate(new Date()),
-    topPic: "",
+    topPic: "https://static.onecms.io/wp-content/uploads/sites/28/2017/05/blue0517.jpg",
     type: acctType
   };
 }
@@ -149,7 +148,8 @@ function makeList(name: string, owner: string, password: string): List{
     password: password || "",
     saveDate: admin.firestore.Timestamp.fromDate(new Date()),
     sections: {},
-    tags: []
+    tags: [],
+    views: {}
   };
 }
 
@@ -271,6 +271,16 @@ export function changeListField(listid: string, field: string, value: string){
   upd[field] = value;
   Lists.doc(listid).update(upd);
 }
+
+export function addListView(listid: string, uid: string){
+  let d = new Date();
+  let year = d.getUTCFullYear();
+  let month = d.getUTCMonth();
+  let day = d.getUTCDate();
+  let date = year + '-' + month + '-' + day;
+  let upd: any = {};
+  upd['views.' + date] = admin.firestore.FieldValue.arrayUnion(uid);
+}
 export async function newSection(listid: string, index: number, color: string): Promise<TypedObject<string>>{
   let update: any = {}; // add either a section or option to a section
   let id: string = makeID(8);
@@ -307,7 +317,6 @@ export async function deleteSection(list: List | null, listid: string, sid: stri
   await Lists.doc(listid).update(update);
   return true;
 }
-
 export async function newItem(list: List | null, listid: string, sid: string, index: number): Promise<string>{
   if (list === null) return '';
   let update: any = {}; // add either a section or option to a section

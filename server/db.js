@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.addListView = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -76,14 +76,12 @@ function makeUser(email, name, password, payType, acctType, creditcard) {
         name: name,
         password: hash,
         personalLists: [],
-        personalTemplates: [],
         plan: payType,
-        profPic: "",
+        profPic: "/images/pfpic.png",
         salt: salt,
         savedLists: [],
-        savedTemplates: [],
         timeLastPaid: admin.firestore.Timestamp.fromDate(new Date()),
-        topPic: "",
+        topPic: "https://static.onecms.io/wp-content/uploads/sites/28/2017/05/blue0517.jpg",
         type: acctType
     };
 }
@@ -97,7 +95,8 @@ function makeList(name, owner, password) {
         password: password || "",
         saveDate: admin.firestore.Timestamp.fromDate(new Date()),
         sections: {},
-        tags: []
+        tags: [],
+        views: {}
     };
 }
 function makeID(length) {
@@ -232,6 +231,16 @@ function changeListField(listid, field, value) {
     Lists.doc(listid).update(upd);
 }
 exports.changeListField = changeListField;
+function addListView(listid, uid) {
+    let d = new Date();
+    let year = d.getUTCFullYear();
+    let month = d.getUTCMonth();
+    let day = d.getUTCDate();
+    let date = year + '-' + month + '-' + day;
+    let upd = {};
+    upd['views.' + date] = admin.firestore.FieldValue.arrayUnion(uid);
+}
+exports.addListView = addListView;
 async function newSection(listid, index, color) {
     let update = {}; // add either a section or option to a section
     let id = makeID(8);
