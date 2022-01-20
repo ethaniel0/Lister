@@ -28,6 +28,7 @@ exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.edi
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
+const levenshtein = __importStar(require("fast-levenshtein"));
 // import { isStringObject } from "util/types";
 // import fetch from 'node-fetch';
 // const admin = require("firebase-admin");
@@ -94,6 +95,7 @@ function makeList(name, owner, password) {
         public: false,
         password: password || "",
         saveDate: admin.firestore.Timestamp.fromDate(new Date()),
+        saves: 0,
         sections: {},
         tags: [],
         views: {}
@@ -103,6 +105,15 @@ function makeID(length) {
     return crypto.randomBytes(length).toString('hex');
 }
 exports.makeID = makeID;
+function getCurrentDay(millis) {
+    let d = new Date();
+    if (millis)
+        d = new Date(millis);
+    let year = d.getUTCFullYear();
+    let month = d.getUTCMonth();
+    let day = d.getUTCDate();
+    return year + '-' + month + '-' + day;
+}
 // GET USER INFORMATION
 async function getUser(selections, all, collection) {
     let arr = [];
@@ -220,6 +231,69 @@ exports.setUserPassword = setUserPassword;
 function findLists(name) {
 }
 exports.findLists = findLists;
+// name and tag scores are normalized and combined, visit and save scores are kept as is
+function weightDocument(query, doc) {
+    let data = doc.data();
+    let words = query.split(" ");
+    let maxLev = Math.max(query.length, data.name.length);
+    // get number for matching name
+    let nameScore = (maxLev - levenshtein.get(query, data.name)) / maxLev;
+    // matching tags
+    let tagScore = 0;
+    for (let tag of data.tags)
+        if (words.includes(tag))
+            tagScore++;
+    tagScore = tagScore / data.tags.length;
+    let nameWeight = 0.6;
+    let combinedScore = nameScore * nameWeight + tagScore * (nameWeight - 1);
+    // get # views in the past 2 weeks
+    let viewScore = 0;
+    let twoweeksago = getCurrentDay(Date.now() - 1209600000);
+    // sort reversed
+    let comparator = function (a, b) {
+        let as = a.split('-');
+        let bs = b.split('-');
+        for (let i = 0; i < 3; i++) {
+            as[i] = parseInt(as[i]);
+            bs[i] = parseInt(bs[i]);
+            if (as[i] != bs[i])
+                return bs[i] - as[i];
+        }
+        return 0;
+    };
+    // sort the dates with most recent first
+    let views = Object.keys(data.views).sort(comparator);
+    for (let day of views) {
+        // if the dat is earlier than two weeks ago, break
+        if (comparator(day, twoweeksago) > 0)
+            break;
+        viewScore += data.views[day].length;
+    }
+    return [combinedScore, viewScore, data.saves];
+}
+function listSortComparator(a, b) {
+    // a or b: [doc, [name/tag score, view score, save score]]
+}
+async function getSearchResults(query) {
+    // 1. Extract direct tags, load pages with those tags and get their weights
+    let words = query.split(" "); // get individual words
+    let firstDocs = [];
+    if (words.length > 10) {
+        for (let i = 0; i < Math.min(words.length, 15); i += 10) {
+            let maxindex = Math.min(i + 10, words.length);
+            let snapshot = await Lists.where('tags', 'array-contains-any', words.slice(i, maxindex)).get();
+            firstDocs.push(...snapshot.docs);
+        }
+    }
+    else {
+        let snapshot = await Lists.where('tags', 'array-contains-any', words).get();
+        for (let doc of snapshot.docs)
+            firstDocs.push([doc, weightDocument(query, doc)]);
+    }
+    // 2. load pages with a similar name
+    // REPLACE WITH ALGOLIA
+    // 3. sort results
+}
 // EDIT LIST INFORMATION
 function deleteList(listid) {
     Lists.doc(listid).delete();
@@ -232,11 +306,7 @@ function changeListField(listid, field, value) {
 }
 exports.changeListField = changeListField;
 function addListView(listid, uid) {
-    let d = new Date();
-    let year = d.getUTCFullYear();
-    let month = d.getUTCMonth();
-    let day = d.getUTCDate();
-    let date = year + '-' + month + '-' + day;
+    let date = getCurrentDay();
     let upd = {};
     upd['views.' + date] = admin.firestore.FieldValue.arrayUnion(uid);
 }
