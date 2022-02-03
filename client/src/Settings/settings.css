@@ -3,7 +3,6 @@
     border-collapse: separate !important;
     border-spacing: 0;
     box-sizing: border-box;
-    
 }
 #settings-table td {
     padding: 1rem 2rem;
@@ -25,7 +24,7 @@
     border-bottom: none;
 }
 
-#password-reset-inputs input, #change-username , #change-email {
+#password-reset-inputs input, #change-username, #change-email, #verify-delete {
     background: #e2e2e2;
     border-radius: 0.3rem;
     margin: calc(0.25rem - 2px) 0;
@@ -35,6 +34,6 @@
     transition: border ease 200ms;
     outline: none;
 }
-#password-reset-inputs input:focus, #change-username:focus, #change-email:focus {
+#password-reset-inputs input:focus, #change-username:focus, #change-email:focus, #verify-delete:focus {
     border: 2px solid rgb(200, 200, 200);
 }

@@ -1,20 +1,19 @@
 # TODO (in order of importance)
 
+## Account Deletion
+- delete account within settings page
+
+## Image Usage Detection
+- increment count whenever an image is referenced
+- decrement count if image is changed or list/account is deleted
+- if the number of image references in the db = 0, delete image from collection and from storage
+
 ## Browse
 - ranking system
-    - extract direct tags from query
-    - search for all lists with similar names or with those direct tags
-    - weight results
     - get second degree tags from the top 5 direct search results
     - weight the results from the second-degree tag search
-    - sort all lists
-    - send the lists to the user
+    
 - use algolia for name search
-
-- entire browse page
-    - search functionality
-        - ranking within the db
-        - retrieving the most popular lists
 
 ## Server
 - store how many times saved
@@ -26,7 +25,6 @@
 
 ## User Profiles
 - distinguish between private and public users
-
 
 ## Register for a different plan
 - make the page
@@ -44,6 +42,12 @@
 
 ## List View
 
+## Browse
+- extract direct tags from query
+- search for all lists with similar names or with those direct tags
+- weight results
+- sort all lists
+- send the lists to the user
 
 ## Server
 - username requirements (username must be <= 20 characters>)

@@ -31,6 +31,9 @@ const Settings = () => {
     const [email, setEmail] = useState("");
     const [changeEmail, setChangeEmail] = useState(false);
 
+    const [deleteModal, setDeleteModal] = useState(false);
+    const [deleteInput, setDeleteInput] = useState('')
+
     function toTitleCase(str) {
         return str.replace(
           /\w\S*/g,
@@ -145,11 +148,25 @@ const Settings = () => {
         });
     }
 
+    const deleteAccount = () => {
+        
+    }
+
     return (
         <div className='relative flex flex-col' style={{height: '100vh'}}>
             <Header uid={uid} topPic={profile.topPic} profPic={profile.profPic} uploadFile={uploadTopPic} />
 
             <div className='flex flex-grow flex-col items-center justify-start'>
+                {/* modal */}
+                <div className='absolute bg-white p-6 rounded-lg flex flex-col items-center border-2 border-black' style={{top: deleteModal ? '50%' : '-100vh', transform: 'translateY(-50%)'}}>
+                    <span className='text-2xl mb-4'>Are you sure you want to delete your account?</span>
+                    <span className='text-xl mb-4'>Please type your account name in the space below.</span>
+                    <input onChange={(e) => {setDeleteInput(e.target.value)}} id='verify-delete' type="text" placeholder='Account Name' value={deleteInput} class='w-full' />
+                    <div>
+                        <button onClick={deleteAccount} className={'mt-8 px-2 py-1 rounded-md border-2 transition-colors duration-300' + (deleteInput === profile.name ? ' border-transparent bg-red-600 text-white' :' border-red-300 bg-red-200 text-black')}>Delete Account</button>
+                        <button onClick={() => setDeleteModal(false)} className='ml-8 px-2 py-1 rounded-md border-2 border-blue-600 bg-blue-600 text-white transition-colors duration-300'>Cancel</button>
+                    </div>
+                </div>
                 <img
                     onClick={(e) => {e.stopPropagation(); document.getElementById('profPicFileUpload').click()}}
                     src={profile.profPic}
@@ -159,6 +176,23 @@ const Settings = () => {
                 <input onChange={uploadProfPic} type="file" className="hidden" id="profPicFileUpload" accept="image/png, image/jpeg" />
                 <table id='settings-table' className='mt-5'>
                     <tbody>
+                        {/* username */}
+                        <tr>
+                            <td>Username</td>
+                            <td className='flex flex-col'>
+                                <div>
+                                    <span>{profile.name}</span>
+                                    <button onClick={() => {setChangeUsername(!changeUsername)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
+                                </div>
+                                <span className={'text-base ' + (unameSuccess ? 'text-green-500' : 'text-red-500')}>{unameError}</span>
+                                <div className={'text-base flex flex-col' + (changeUsername ? '' : ' hidden')}>
+                                    <input onChange={(e) => setUsername(e.target.value)} id='change-username'  type="text" placeholder='New username' value={username} />
+                                    <div>
+                                        <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update username</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
                         {/* email */}
                         <tr>
                             <td>Email</td>
@@ -173,23 +207,6 @@ const Settings = () => {
                                     <input onChange={(e) => setEmail(e.target.value)} id='change-email' type="text" placeholder='New email' value={email} />
                                     <div>
                                         <button onClick={subChangeEmail} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update email</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {/* username */}
-                        <tr>
-                            <td>Username</td>
-                            <td className='flex flex-col'>
-                                <div>
-                                    <span>{profile.name}</span>
-                                    <button onClick={() => {setChangeUsername(!changeUsername)}} className='text-base ml-4 bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Change username</button>
-                                </div>
-                                <span className={'text-base ' + (unameSuccess ? 'text-green-500' : 'text-red-500')}>{unameError}</span>
-                                <div className={'text-base flex flex-col' + (changeUsername ? '' : ' hidden')}>
-                                    <input onChange={(e) => setUsername(e.target.value)} id='change-username'  type="text" placeholder='New username' value={username} />
-                                    <div>
-                                        <button onClick={subChangeUsername} className='bg-blue-300 px-2 py-1 rounded-md border-white border-2 hover:border-blue-600 hover:bg-blue-200 transition-colors duration-300'>Update username</button>
                                     </div>
                                 </div>
                             </td>
@@ -220,6 +237,8 @@ const Settings = () => {
                         </tr>
                     </tbody>
                 </table>
+
+                <button onClick={() => setDeleteModal(true)} className='mt-8 bg-red-600 text-white px-2 py-1 rounded-md border-white border-2 hover:border-red-600 hover:bg-red-200 hover:text-black transition-colors duration-300'>Delete Account</button>
             </div>
         </div>
     )
