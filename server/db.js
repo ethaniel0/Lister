@@ -75,6 +75,7 @@ function makeUser(email, name, password, payType, acctType, creditcard) {
         email: email,
         listProgress: {},
         name: name,
+        nameUpper: name.toUpperCase(),
         password: hash,
         personalLists: [],
         plan: payType,
@@ -91,6 +92,7 @@ function makeList(name, owner, password) {
         image: "https://cdn-icons-png.flaticon.com/512/149/149347.png",
         topImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Solid_green_%2880B682%29.svg/512px-Solid_green_%2880B682%29.svg.png",
         name: name,
+        nameUpper: name.toUpperCase(),
         owner: owner,
         public: false,
         password: password || "",
@@ -309,6 +311,13 @@ async function getSearchResults(query) {
     }
     // 2. load pages with a similar name
     // REPLACE WITH ALGOLIA
+    let searchTerm = query.toUpperCase();
+    let sLower = query.toLowerCase();
+    let endTerm = searchTerm.toLowerCase().substr(0, searchTerm.length - 1) + String.fromCharCode(sLower.charCodeAt(sLower.length - 1) + 1);
+    let snapshot = await Lists.where('name', '>=', searchTerm).where('name', '<', endTerm).get();
+    console.log(snapshot.docs.length);
+    for (let doc of snapshot.docs)
+        firstDocs.push([doc, weightDocument(query, doc)]);
     // 3. sort results
     firstDocs.sort(listSortComparator);
     let ret = [];
