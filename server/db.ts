@@ -273,7 +273,7 @@ export function findLists(name: string){
   
 
 }
-// name and tag scores are normalized and combined, visit and save scores are kept as is
+// name and tag scores are normalized and combined, view and save scores are kept as is
 function weightDocument(query: string, doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>): Array<number> {
   let data: List = doc.data() as List;
   let words = query.split(" ");
@@ -312,23 +312,38 @@ function weightDocument(query: string, doc: FirebaseFirestore.QueryDocumentSnaps
     if (comparator(day, twoweeksago) > 0) break;
     viewScore += data.views[day].length;
   }
-
+  
   return [combinedScore, viewScore, data.saves];
 
 }
 function listSortComparator(a: Array<any>, b: Array<any>){
-  // a or b: [doc, [name/tag score, view score, save score]]
+  // a / b: [doc, [name/tag score, view score, save score]]
+
+  // sort based on name/tag score first
+  if (Math.abs(a[1][0] - b[1][0]) >= 0.1){
+    if (a[1][0] > b[1][0]) return -1;
+    return 1;
+  }
+  // if same or similar name/tag score, sort based on view score
+  else {
+    if (a[1][1] > b[1][1]) return -1;
+    return 1;
+  }
   
 }
-async function getSearchResults(query: string){
+export async function getSearchResults(query: string): Promise<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[]>{
   // 1. Extract direct tags, load pages with those tags and get their weights
   let words = query.split(" "); // get individual words
   let firstDocs: Array<Array<any>> = [];
+  let tagsSeen = new Set();
+  // fills firstDocs with docs containing tags
   if (words.length > 10) {
     for (let i = 0; i < Math.min(words.length, 15); i += 10){
       let maxindex = Math.min(i + 10, words.length);
-      let snapshot = await Lists.where('tags', 'array-contains-any', words.slice(i, maxindex)).get();
-      // firstDocs.push(...snapshot.docs);
+      let seenwords = words.slice(i, maxindex);
+      seenwords.forEach(tagsSeen.add, tagsSeen);
+      let snapshot = await Lists.where('tags', 'array-contains-any', seenwords).get();
+      for (let doc of snapshot.docs) firstDocs.push([doc, weightDocument(query, doc)]);
     }
 
   }
@@ -341,7 +356,11 @@ async function getSearchResults(query: string){
   // REPLACE WITH ALGOLIA
 
   // 3. sort results
-  
+  firstDocs.sort(listSortComparator)
+
+  let ret = [];
+  for (let d of firstDocs) ret.push(d[0])
+  return ret;
 }
 
 // EDIT LIST INFORMATION

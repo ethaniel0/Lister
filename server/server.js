@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,8 +25,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const cookieParser = require('cookie-parser');
-const db_js_1 = require("./db.js");
-const PORT = process.env.PORT || 3001;
+const db = __importStar(require("./db.js"));
+// {userExists, saveNewUser, User, List, UserList, checkUser, getUser, getUserProfile, getList, editUserField, setUserPassword, UserDoc, getSession, 
+// 		saveList, checkUserCookie, changeListField, newSection, editSection, deleteSection, newItem, editItem, deleteItem,
+// 		updateUserProgress, uploadImage, deleteList, getSearchResults}
+const PORT = 3001;
 const app = (0, express_1.default)();
 app.use(cookieParser(process.env.cookie_secret));
 app.use(express_1.default.json());
@@ -20,7 +42,7 @@ app.get('/testsession', async (req, res) => {
     let uid = req.cookies['uid'];
     if (!session || !uid)
         return res.json({ error: false });
-    let user = await (0, db_js_1.getUser)({ '.id': uid }, false);
+    let user = await db.getUser({ '.id': uid }, false);
     if (user.length == 0)
         return res.json({ error: false });
     let u = user[0].user;
@@ -44,20 +66,20 @@ app.post('/api/login', async (req, res) => {
             return res.json({ error: "Passwords must match" });
         else if (body.password.length < 6)
             return res.json({ error: "Password must be at least 6 characters long" });
-        else if (await (0, db_js_1.userExists)({ email: body.username }))
+        else if (await db.userExists({ email: body.username }))
             return res.json({ error: "A user already exists with this email" });
         // save the user
-        await (0, db_js_1.saveNewUser)(body.username, body.username.split('@')[0], body.password, 'free', false, { cvv: "", number: "" });
+        await db.saveNewUser(body.username, body.username.split('@')[0], body.password, 'free', false, { cvv: "", number: "" });
         return res.json({ success: "Your account was created! Check your inbox for a confirmation email." });
     }
     else {
-        let resp = await (0, db_js_1.checkUser)(body.username, body.password);
+        let resp = await db.checkUser(body.username, body.password);
         if (resp === 0)
             return res.json({ error: "No account exists with this email / username" });
         else if (resp === false)
             return res.json({ error: "Incorrect password." });
-        let user = (await (0, db_js_1.getUser)({ email: body.username, name: body.username }, false))[0];
-        let session = await (0, db_js_1.getSession)(user.id, body.password);
+        let user = (await db.getUser({ email: body.username, name: body.username }, false))[0];
+        let session = await db.getSession(user.id, body.password);
         if (session.length > 0) {
             res.cookie('id', session, { httpOnly: true });
             res.cookie('uid', user.id, { httpOnly: true });
@@ -74,7 +96,7 @@ app.get('/logout', (req, res) => {
 app.get('/api/profile/:uid', async (req, res) => {
     let { uid } = req.params;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     let filtered = {
@@ -85,7 +107,7 @@ app.get('/api/profile/:uid', async (req, res) => {
         owner: id === user.session
     };
     for (let l of user.personalLists) {
-        let list = await (0, db_js_1.getList)(l.id, l.viewable, false);
+        let list = await db.getList(l.id, l.viewable, false);
         if (list === null)
             continue;
         if (id !== user.session && !list.public)
@@ -102,7 +124,7 @@ app.get('/api/profile/:uid', async (req, res) => {
 app.get('/api/profile/:uid/settings', async (req, res) => {
     let { uid } = req.params;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -121,7 +143,7 @@ app.post('/api/edit/:uid/uploadMainImage', (0, express_fileupload_1.default)(), 
         return res.json({ error: 'image not supplied' });
     let { uid } = req.params;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -130,9 +152,9 @@ app.post('/api/edit/:uid/uploadMainImage', (0, express_fileupload_1.default)(), 
     let fileId = Math.round(Math.random() * 1e15);
     let parts = file.name.split('.');
     let name = fileId + '.' + parts[parts.length - 1];
-    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+    db.uploadImage(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.editUserField)(uid, 'topPic', url);
+            db.editUserField(uid, 'topPic', url);
         }
         res.json({ url });
     });
@@ -142,7 +164,7 @@ app.post('/api/edit/:uid/uploadProfPic', (0, express_fileupload_1.default)(), as
         return res.json({ error: 'image not supplied' });
     let { uid } = req.params;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -151,9 +173,9 @@ app.post('/api/edit/:uid/uploadProfPic', (0, express_fileupload_1.default)(), as
     let fileId = Math.round(Math.random() * 1e15);
     let parts = file.name.split('.');
     let name = fileId + '.' + parts[parts.length - 1];
-    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+    db.uploadImage(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.editUserField)(uid, 'profPic', url);
+            db.editUserField(uid, 'profPic', url);
         }
         res.json({ url });
     });
@@ -162,7 +184,7 @@ app.post('/api/profile/:uid/settings/setUsername', async function (req, res) {
     let { uid } = req.params;
     let { username } = req.body;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -173,17 +195,17 @@ app.post('/api/profile/:uid/settings/setUsername', async function (req, res) {
         return res.json({ error: "New username cannot be the same as the current username" });
     if (username.length > 20)
         return res.json({ error: "Username is too long (max 20 characters)" });
-    let us = await (0, db_js_1.getUser)({ name: username }, false);
+    let us = await db.getUser({ name: username }, false);
     if (us.length > 0)
         return res.json({ error: "Username is taken" });
-    (0, db_js_1.editUserField)(uid, 'name', username);
+    db.editUserField(uid, 'name', username);
     res.json({ success: "Username changed successfully!" });
 });
 app.post('/api/profile/:uid/settings/setPassword', async function (req, res) {
     let { uid } = req.params;
     let { curPassword, newPassword, confPassword } = req.body;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -200,19 +222,19 @@ app.post('/api/profile/:uid/settings/setPassword', async function (req, res) {
         return res.json({ error: "New password cannot be the same as the current password" });
     if (newPassword.length < 6)
         return res.json({ error: "New password must have 6 or more chagacters" });
-    let resp = await (0, db_js_1.checkUser)(user.email, curPassword);
+    let resp = await db.checkUser(user.email, curPassword);
     if (resp === 0)
         return res.json({ error: "Current account doesn't exist" });
     else if (resp === false)
         return res.json({ error: "Incorrect password" });
-    (0, db_js_1.setUserPassword)(uid, newPassword);
+    db.setUserPassword(uid, newPassword);
     res.json({ success: 'Password changed!' });
 });
 app.post('/api/profile/:uid/settings/setEmail', async function (req, res) {
     let { uid } = req.params;
     let { email } = req.body;
     let id = req.cookies['id'];
-    let user = await (0, db_js_1.getUserProfile)(uid);
+    let user = await db.getUserProfile(uid);
     if (user === null)
         return res.json({ error: "User doesn't exist" });
     if (user.session != id)
@@ -223,10 +245,10 @@ app.post('/api/profile/:uid/settings/setEmail', async function (req, res) {
         return res.json({ error: "New email cannot be the same as the current email" });
     if (!validateEmail(email))
         return res.json({ error: "New email must have a valid address" });
-    let us = await (0, db_js_1.getUser)({ email }, false);
+    let us = await db.getUser({ email }, false);
     if (us.length > 0)
         return res.json({ error: "email is currently in use" });
-    (0, db_js_1.editUserField)(uid, 'email', email);
+    db.editUserField(uid, 'email', email);
     res.json({ success: "Email changed successfully!" });
 });
 // LIST DATA
@@ -234,12 +256,12 @@ app.get('/api/list/:listid', async (req, res) => {
     let { listid } = req.params;
     let id = req.cookies['id'];
     let uid = req.cookies['uid'];
-    let list = await (0, db_js_1.getList)(listid, true, false);
+    let list = await db.getList(listid, true, false);
     if (!list)
-        list = await (0, db_js_1.getList)(listid, false, false);
+        list = await db.getList(listid, false, false);
     if (!list)
         return res.json({ error: 'list not found' });
-    let user = await (0, db_js_1.getUserProfile)(list.owner);
+    let user = await db.getUserProfile(list.owner);
     let session = (user === null) ? "" : user.session;
     let ret = {
         name: list.name,
@@ -260,7 +282,7 @@ app.get('/api/viewer/:listid/getChecks', async (req, res) => {
     if (!session || !uid)
         return res.json({});
     let { listid } = req.params;
-    let users = await (0, db_js_1.getUser)({ '.id': uid }, false);
+    let users = await db.getUser({ '.id': uid }, false);
     if (users.length == 0)
         return res.json({});
     let user = users[0].user;
@@ -271,30 +293,42 @@ app.get('/api/viewer/:listid/getChecks', async (req, res) => {
 app.post('/api/newList/:uid', async (req, res) => {
     let id = req.cookies['id'];
     let { uid } = req.params;
-    let user = await (0, db_js_1.getUser)({ '.id': uid }, false);
+    let user = await db.getUser({ '.id': uid }, false);
     if (user.length > 0 && user[0].user.session == id) {
-        let resp = await (0, db_js_1.saveList)("New List", uid, "");
+        let resp = await db.saveList("New List", uid, "");
         return res.json({ success: resp.id });
     }
     res.json({ 'error': '/' });
 });
-app.post('/api/search/:query', async (req, res) => {
+app.get('/api/search/:query', async (req, res) => {
     let { query } = req.params;
-    return res.json({ 'success': '' });
+    let docs = await db.getSearchResults(query);
+    let docData = [];
+    // get image, name, and id
+    for (let d of docs) {
+        let data = d.data();
+        docData.push({
+            img: data.image,
+            name: data.name,
+            id: d.id,
+            uid: data.owner
+        });
+    }
+    return res.json({ 'success': docData });
 });
 function getListFromUser(user, listid) {
     return user.personalLists.find(e => e.id === listid);
 }
 async function checkList(req, res, uid, listid) {
     let id = req.cookies['id'];
-    let userD = await (0, db_js_1.checkUserCookie)(uid, id);
+    let userD = await db.checkUserCookie(uid, id);
     if (userD === false)
         return { session: 'error', user: 'User not found or not allowed to edit', list: null, ul: null };
     let user = userD.user;
     let ul = getListFromUser(user, listid);
     if (ul === undefined)
         return { session: 'error', user: 'List not found', list: null, ul: null };
-    let list = await (0, db_js_1.getList)(listid, ul.viewable, false);
+    let list = await db.getList(listid, ul.viewable, false);
     if (list === null)
         return { session: 'error', user: 'List not found', list: null, ul: null };
     return { session: id, user: user, list, ul };
@@ -305,7 +339,7 @@ app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListField)(listid, 'name', name);
+    db.changeListField(listid, 'name', name);
     return res.json({ 'success': true });
 });
 app.post('/api/deleteList/:uid/:listid/', async (req, res) => {
@@ -313,7 +347,7 @@ app.post('/api/deleteList/:uid/:listid/', async (req, res) => {
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.deleteList)(listid);
+    db.deleteList(listid);
     return res.json({ 'success': true });
 });
 app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
@@ -322,7 +356,7 @@ app.post('/api/edit/:uid/:listid/addSection', async (req, res) => {
     let { session, user, list, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let ids = await (0, db_js_1.newSection)(listid, Object.keys(list.sections).length, color);
+    let ids = await db.newSection(listid, Object.keys(list.sections).length, color);
     if (!ids.id)
         return res.json({ 'error': 'Error adding section' });
     return res.json(ids);
@@ -333,7 +367,7 @@ app.post('/api/edit/:uid/:listid/editSection', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.editSection)(listid, sid, field, value);
+    let worked = await db.editSection(listid, sid, field, value);
     if (!worked)
         return res.json({ 'error': 'Error adding section' });
     return res.json({ 'success': worked });
@@ -344,7 +378,7 @@ app.post('/api/edit/:uid/:listid/deleteSection', async (req, res) => {
     let { session, user, list, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.deleteSection)(list, listid, sid);
+    let worked = await db.deleteSection(list, listid, sid);
     if (!worked)
         return res.json({ 'error': 'Error deleting section' });
     return res.json({ 'success': worked });
@@ -357,7 +391,7 @@ app.post('/api/edit/:uid/:listid/addItem', async (req, res) => {
         return res.json({ 'error': user });
     if (!(sid in list.sections))
         return res.json({ 'error': 'Error adding section' });
-    let tid = await (0, db_js_1.newItem)(list, listid, sid, ind);
+    let tid = await db.newItem(list, listid, sid, ind);
     if (!tid)
         return res.json({ 'error': 'Error adding section' });
     return res.json({ success: tid });
@@ -368,7 +402,7 @@ app.post('/api/edit/:uid/:listid/editItem', async (req, res) => {
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.editItem)(uid, listid, sid, tid, value);
+    let worked = await db.editItem(uid, listid, sid, tid, value);
     if (!worked)
         return res.json({ 'error': 'Error adding section' });
     return res.json({ 'success': worked });
@@ -379,7 +413,7 @@ app.post('/api/edit/:uid/:listid/deleteItem', async (req, res) => {
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    let worked = await (0, db_js_1.deleteItem)(uid, listid, sid, tid);
+    let worked = await db.deleteItem(uid, listid, sid, tid);
     if (!worked)
         return res.json({ 'error': 'Error deleting section' });
     return res.json({ 'success': worked });
@@ -390,7 +424,7 @@ app.post('/api/edit/:uid/:listid/addTag', async (req, res) => {
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListField)(listid, 'tags', tags);
+    db.changeListField(listid, 'tags', tags);
     return res.json({ 'success': true });
 });
 app.post('/api/edit/:uid/:listid/uploadTopImage', (0, express_fileupload_1.default)(), async function (req, res) {
@@ -404,9 +438,9 @@ app.post('/api/edit/:uid/:listid/uploadTopImage', (0, express_fileupload_1.defau
     let id = Math.round(Math.random() * 1e15);
     let parts = file.name.split('.');
     let name = id + '.' + parts[parts.length - 1];
-    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+    db.uploadImage(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.changeListField)(listid, 'topImage', url);
+            db.changeListField(listid, 'topImage', url);
         }
         res.json({ url });
     });
@@ -422,9 +456,9 @@ app.post('/api/edit/:uid/:listid/uploadCoverImage', (0, express_fileupload_1.def
     let id = Math.round(Math.random() * 1e15);
     let parts = file.name.split('.');
     let name = id + '.' + parts[parts.length - 1];
-    (0, db_js_1.uploadImage)(name, file, parts[parts.length - 1], (url) => {
+    db.uploadImage(name, file, parts[parts.length - 1], (url) => {
         if (url.length > 0) {
-            (0, db_js_1.changeListField)(listid, 'image', url);
+            db.changeListField(listid, 'image', url);
         }
         res.json({ url });
     });
@@ -435,7 +469,7 @@ app.post('/api/edit/:uid/:listid/setPublic', async (req, res) => {
     let { session, user, ul } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
-    (0, db_js_1.changeListField)(listid, 'public', isPublic);
+    db.changeListField(listid, 'public', isPublic);
     return res.json({ 'success': true });
 });
 app.post('/api/viewer/:listid/checkItem', async (req, res) => {
@@ -445,13 +479,13 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
         return res.json({ "error": '' });
     let { listid } = req.params;
     let { sid, tid, checked } = req.body;
-    let users = await (0, db_js_1.getUser)({ '.id': uid }, false);
+    let users = await db.getUser({ '.id': uid }, false);
     if (users.length == 0)
         return res.json({ "error": '' });
     let user = users[0].user;
     if (user.session != session)
         return res.json({ "error": '' });
-    await (0, db_js_1.updateUserProgress)(uid, listid, sid, tid, checked);
+    await db.updateUserProgress(uid, listid, sid, tid, checked);
     return res.json({ 'success': '' });
 });
 app.listen(PORT, () => {

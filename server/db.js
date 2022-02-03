@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.addListView = exports.changeListField = exports.deleteList = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.addListView = exports.changeListField = exports.deleteList = exports.getSearchResults = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -231,7 +231,7 @@ exports.setUserPassword = setUserPassword;
 function findLists(name) {
 }
 exports.findLists = findLists;
-// name and tag scores are normalized and combined, visit and save scores are kept as is
+// name and tag scores are normalized and combined, view and save scores are kept as is
 function weightDocument(query, doc) {
     let data = doc.data();
     let words = query.split(" ");
@@ -272,17 +272,34 @@ function weightDocument(query, doc) {
     return [combinedScore, viewScore, data.saves];
 }
 function listSortComparator(a, b) {
-    // a or b: [doc, [name/tag score, view score, save score]]
+    // a / b: [doc, [name/tag score, view score, save score]]
+    // sort based on name/tag score first
+    if (Math.abs(a[1][0] - b[1][0]) >= 0.1) {
+        if (a[1][0] > b[1][0])
+            return -1;
+        return 1;
+    }
+    // if same or similar name/tag score, sort based on view score
+    else {
+        if (a[1][1] > b[1][1])
+            return -1;
+        return 1;
+    }
 }
 async function getSearchResults(query) {
     // 1. Extract direct tags, load pages with those tags and get their weights
     let words = query.split(" "); // get individual words
     let firstDocs = [];
+    let tagsSeen = new Set();
+    // fills firstDocs with docs containing tags
     if (words.length > 10) {
         for (let i = 0; i < Math.min(words.length, 15); i += 10) {
             let maxindex = Math.min(i + 10, words.length);
-            let snapshot = await Lists.where('tags', 'array-contains-any', words.slice(i, maxindex)).get();
-            firstDocs.push(...snapshot.docs);
+            let seenwords = words.slice(i, maxindex);
+            seenwords.forEach(tagsSeen.add, tagsSeen);
+            let snapshot = await Lists.where('tags', 'array-contains-any', seenwords).get();
+            for (let doc of snapshot.docs)
+                firstDocs.push([doc, weightDocument(query, doc)]);
         }
     }
     else {
@@ -293,7 +310,13 @@ async function getSearchResults(query) {
     // 2. load pages with a similar name
     // REPLACE WITH ALGOLIA
     // 3. sort results
+    firstDocs.sort(listSortComparator);
+    let ret = [];
+    for (let d of firstDocs)
+        ret.push(d[0]);
+    return ret;
 }
+exports.getSearchResults = getSearchResults;
 // EDIT LIST INFORMATION
 function deleteList(listid) {
     Lists.doc(listid).delete();

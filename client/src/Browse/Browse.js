@@ -13,6 +13,7 @@ const Browse = () => {
     const [uid, setUid] = useState("");
     const [menu, showMenu] = useState(false);
     const [search, editSearch] = useState("");
+    const [lists, editLists] = useState([]);
 
     const bodyClick = (e) => {
         let el = document.getElementById('header-menu');
@@ -28,10 +29,6 @@ const Browse = () => {
 
     useEffect(() => {
         let isMounted = true;
-        fetch('/api').then(res => res.text()).then(text => { 
-            console.log('TESTING');
-            console.log(text);
-        })
         fetch('/testsession').then(res => res.json()).then(json => {
             console.log(json);
             if (isMounted && !('error' in json)){
@@ -42,10 +39,12 @@ const Browse = () => {
                 setLogged(true);
             }
         });
-        fetch('api/search/' + query).then(res => res.json()).then(json => {
+        
+        fetch('/api/search/' + query).then(res => res.json()).then(json => {
+            console.log('searching');
             console.log(json);
             if (isMounted && !('error' in json)){
-                console.log(json)
+                editLists(json.success);
             }
         });
         return () => { isMounted = false };
@@ -57,6 +56,17 @@ const Browse = () => {
             <main className='text-center transition duration-300' style={{filter: (modal ? "blur(10px)" : 'blur(0)')}}>
                 <input onChange={(e) => editSearch(e.target.value)} onKeyPress={detectEnter} type="text" value={search} placeholder="Search" className="bg-gray-200 p-2 text-xl rounded-md mb-4 outline-none w-96 border-2 border-gray-400 " />
                 <h1 className="text-xl font-thin">Search results for &quot;{query}&quot;</h1>
+                <br />
+                {
+                    lists.map(e => (
+                        <div key={e.id} onClick={() => window.location.href=`/list/${e.uid}/${e.id}`} className='listdiv inline-flex flex-col justify-between items-center border-gray-300 border-2 shadow-lg w-52 h-52' >
+                            <div className='flex-grow w-full bg-contain bg-no-repeat bg-center' style={{top: 0, backgroundImage: `url(${e.img})`}}>
+                            </div>
+                            
+                            <span className='text-2xl mt-2'>{e.name}</span>
+                        </div>
+                    ))
+                }
             </main>
         </div>
     )
