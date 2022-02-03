@@ -165,6 +165,7 @@ app.post('/api/profile/:uid/settings/setUsername', async function(req, res) {
 	if (us.length > 0) return res.json({ error: "Username is taken" });
 
 	db.editUserField(uid, 'name', username);
+	db.editUserField(uid, 'nameUpper', username.toUpperCase());
 	res.json({ success: "Username changed successfully!" });
 })
 app.post('/api/profile/:uid/settings/setPassword', async function(req, res) {
@@ -292,9 +293,10 @@ async function checkList(req: any, res: any, uid: string, listid: string): Promi
 app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
 	let { uid, listid } = req.params;
 	let { name } = req.body;
-	let { session, user, ul } = await checkList(req, res, uid, listid);
+	let { session, user } = await checkList(req, res, uid, listid);
 	if (session === 'error') return res.json({'error': user});
 	db.changeListField(listid, 'name', name);
+	db.changeListField(listid, 'nameUpper', name.toUpperCase());
 	return res.json({'success': true});
 });
 app.post('/api/deleteList/:uid/:listid/', async (req, res) => {

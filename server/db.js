@@ -292,6 +292,7 @@ async function getSearchResults(query) {
     // 1. Extract direct tags, load pages with those tags and get their weights
     let words = query.split(" "); // get individual words
     let firstDocs = [];
+    let idsSeen = new Set();
     let tagsSeen = new Set();
     // fills firstDocs with docs containing tags
     if (words.length > 10) {
@@ -300,24 +301,31 @@ async function getSearchResults(query) {
             let seenwords = words.slice(i, maxindex);
             seenwords.forEach(tagsSeen.add, tagsSeen);
             let snapshot = await Lists.where('tags', 'array-contains-any', seenwords).get();
-            for (let doc of snapshot.docs)
+            for (let doc of snapshot.docs) {
                 firstDocs.push([doc, weightDocument(query, doc)]);
+                idsSeen.add(doc.id);
+            }
         }
     }
     else {
         let snapshot = await Lists.where('tags', 'array-contains-any', words).get();
-        for (let doc of snapshot.docs)
+        for (let doc of snapshot.docs) {
             firstDocs.push([doc, weightDocument(query, doc)]);
+            idsSeen.add(doc.id);
+        }
     }
     // 2. load pages with a similar name
     // REPLACE WITH ALGOLIA
     let searchTerm = query.toUpperCase();
     let sLower = query.toLowerCase();
-    let endTerm = searchTerm.toLowerCase().substr(0, searchTerm.length - 1) + String.fromCharCode(sLower.charCodeAt(sLower.length - 1) + 1);
-    let snapshot = await Lists.where('name', '>=', searchTerm).where('name', '<', endTerm).get();
-    console.log(snapshot.docs.length);
-    for (let doc of snapshot.docs)
-        firstDocs.push([doc, weightDocument(query, doc)]);
+    let endTerm = searchTerm.substring(0, searchTerm.length - 1) + String.fromCharCode(searchTerm.charCodeAt(searchTerm.length - 1) + 1);
+    let snapshot = await Lists.where('nameUpper', '>=', searchTerm).where('nameUpper', '<', endTerm).get();
+    for (let doc of snapshot.docs) {
+        if (!idsSeen.has(doc.id)) {
+            firstDocs.push([doc, weightDocument(query, doc)]);
+            idsSeen.add(doc.id);
+        }
+    }
     // 3. sort results
     firstDocs.sort(listSortComparator);
     let ret = [];
