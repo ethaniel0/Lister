@@ -149,7 +149,20 @@ const Settings = () => {
     }
 
     const deleteAccount = () => {
-        
+        console.log('deleting');
+        fetch('/api/deleteAccount/' + uid, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(res => res.json()).then(json => {
+            if (json.success){
+                history.push('/');
+            }
+            else {
+                console.log(json);
+            }
+        })
     }
 
     return (
@@ -161,7 +174,7 @@ const Settings = () => {
                 <div className='absolute bg-white p-6 rounded-lg flex flex-col items-center border-2 border-black' style={{top: deleteModal ? '50%' : '-100vh', transform: 'translateY(-50%)'}}>
                     <span className='text-2xl mb-4'>Are you sure you want to delete your account?</span>
                     <span className='text-xl mb-4'>Please type your account name in the space below.</span>
-                    <input onChange={(e) => {setDeleteInput(e.target.value)}} id='verify-delete' type="text" placeholder='Account Name' value={deleteInput} class='w-full' />
+                    <input onChange={(e) => {setDeleteInput(e.target.value)}} id='verify-delete' type="text" placeholder='Account Name' value={deleteInput} className='w-full' />
                     <div>
                         <button onClick={deleteAccount} className={'mt-8 px-2 py-1 rounded-md border-2 transition-colors duration-300' + (deleteInput === profile.name ? ' border-transparent bg-red-600 text-white' :' border-red-300 bg-red-200 text-black')}>Delete Account</button>
                         <button onClick={() => setDeleteModal(false)} className='ml-8 px-2 py-1 rounded-md border-2 border-blue-600 bg-blue-600 text-white transition-colors duration-300'>Cancel</button>

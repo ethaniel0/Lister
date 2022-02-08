@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUserCookie = exports.uploadImage = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.addListView = exports.changeListField = exports.deleteList = exports.getSearchResults = exports.findLists = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
+exports.deleteImages = exports.checkUserCookie = exports.uploadImage = exports.deleteLists = exports.deleteItem = exports.editItem = exports.newItem = exports.deleteSection = exports.editSection = exports.newSection = exports.addListView = exports.changeListField = exports.deleteList = exports.getSearchResults = exports.findLists = exports.deleteUser = exports.setUserPassword = exports.editUserField = exports.saveList = exports.saveNewUser = exports.updateUserProgress = exports.getSession = exports.getList = exports.getUserList = exports.getUserProfile = exports.getUser = exports.makeID = exports.checkUser = exports.hashPassword = exports.userExists = void 0;
 // const admin = require('firebase-admin');
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -229,6 +229,10 @@ async function setUserPassword(uid, password) {
     return true;
 }
 exports.setUserPassword = setUserPassword;
+async function deleteUser(uid) {
+    await Users.doc(uid).delete();
+}
+exports.deleteUser = deleteUser;
 // SEARCH LISTS
 function findLists(name) {
 }
@@ -317,7 +321,6 @@ async function getSearchResults(query) {
     // 2. load pages with a similar name
     // REPLACE WITH ALGOLIA
     let searchTerm = query.toUpperCase();
-    let sLower = query.toLowerCase();
     let endTerm = searchTerm.substring(0, searchTerm.length - 1) + String.fromCharCode(searchTerm.charCodeAt(searchTerm.length - 1) + 1);
     let snapshot = await Lists.where('nameUpper', '>=', searchTerm).where('nameUpper', '<', endTerm).get();
     for (let doc of snapshot.docs) {
@@ -444,6 +447,20 @@ async function deleteItem(uid, listid, sid, tid) {
     return true;
 }
 exports.deleteItem = deleteItem;
+function deleteLists(lists) {
+    // delete images from lists and lists concurrently
+    for (let list of lists) {
+        Lists.doc(list.id).get().then(doc => {
+            if (doc.exists) {
+                let data = doc.data();
+                let images = [data.image, data.topImage];
+                deleteImages(images);
+                Lists.doc(list.id).delete();
+            }
+        });
+    }
+}
+exports.deleteLists = deleteLists;
 // OTHER DATABASE FUNCTIONS
 async function uploadImage(name, file, ext, callback) {
     file.name = name;
@@ -458,17 +475,6 @@ async function uploadImage(name, file, ext, callback) {
             callback(url.toString());
         });
     });
-    // let file_binary = file.data;
-    // let url2file = 'https://firebasestorage.googleapis.com/v0/b/bringit-a32a6.appspot.com/o/images%2F' + name;
-    // let headers = {"Content-Type": "image/" + ext}
-    // let resp = await fetch(url2file, {
-    //   method: 'POST',
-    //   body: file_binary,
-    //   headers
-    // });
-    // r = requests.post(url2file, data=file_binary, headers=headers)
-    // let json = await resp.json();
-    // console.log(json);
 }
 exports.uploadImage = uploadImage;
 async function checkUserCookie(uid, session) {
@@ -476,3 +482,14 @@ async function checkUserCookie(uid, session) {
     return (user.length > 0 && user[0].user.session == session) ? user[0] : false;
 }
 exports.checkUserCookie = checkUserCookie;
+function imgName(imgLink) {
+    let name = imgLink.split('/');
+    return name[name.length - 1];
+}
+function deleteImages(images) {
+    for (let img of images) {
+        let path = `images/${imgName(img)}`;
+        Bucket.file(path).delete();
+    }
+}
+exports.deleteImages = deleteImages;

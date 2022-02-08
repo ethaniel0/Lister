@@ -67,10 +67,10 @@ export interface List {
   sections: {
     [key: string]: ListSection
   };
-  tags: Array<string>;
+  tags: string[];
   topImage: string;
   views: {
-    [key: string]: Array<string>
+    [key: string]: string[]
   };
 }
 export interface UserList {
@@ -85,11 +85,11 @@ export interface User {
   name: string;
   nameUpper: string;
   password: string;
-  personalLists: Array<UserList>;
+  personalLists: UserList[];
   plan: string;
   profPic: string;
   salt: string;
-  savedLists: Array<UserList>;
+  savedLists: UserList[];
   session?: string;
   timeLastPaid: admin.firestore.Timestamp,
   topPic: string;
@@ -174,8 +174,8 @@ function getCurrentDay(millis?: number){
 }
 
 // GET USER INFORMATION
-export async function getUser(selections: TypedObject<string>, all: boolean, collection?: boolean): Promise<Array<UserDoc>> {
-  let arr: Array<UserDoc> = [];
+export async function getUser(selections: TypedObject<string>, all: boolean, collection?: boolean): Promise<UserDoc[]> {
+  let arr: UserDoc[] = [];
   if (all){
     let ref: any = Users;
     for (let i in selections) ref = ref.where(i, '==', selections[i]);
@@ -271,6 +271,9 @@ export async function setUserPassword(uid: string, password: string){
   editUserField(uid, 'salt', salt);
   return true;
 }
+export async function deleteUser(uid: string){
+  await Users.doc(uid).delete();
+}
 
 // SEARCH LISTS
 export function findLists(name: string){
@@ -278,7 +281,7 @@ export function findLists(name: string){
 
 }
 // name and tag scores are normalized and combined, view and save scores are kept as is
-function weightDocument(query: string, doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>): Array<number> {
+function weightDocument(query: string, doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>): number[] {
   let data: List = doc.data() as List;
   let words = query.split(" ");
   let maxLev = Math.max(query.length, data.name.length);
@@ -320,7 +323,7 @@ function weightDocument(query: string, doc: FirebaseFirestore.QueryDocumentSnaps
   return [combinedScore, viewScore, data.saves];
 
 }
-function listSortComparator(a: Array<any>, b: Array<any>){
+function listSortComparator(a: any[], b: any[]){
   // a / b: [doc, [name/tag score, view score, save score]]
 
   // sort based on name/tag score first
@@ -338,7 +341,7 @@ function listSortComparator(a: Array<any>, b: Array<any>){
 export async function getSearchResults(query: string): Promise<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[]>{
   // 1. Extract direct tags, load pages with those tags and get their weights
   let words = query.split(" "); // get individual words
-  let firstDocs: Array<Array<any>> = [];
+  let firstDocs: any[][] = [];
   let idsSeen: Set<string> = new Set();
   let tagsSeen = new Set();
   // fills firstDocs with docs containing tags
@@ -366,7 +369,6 @@ export async function getSearchResults(query: string): Promise<FirebaseFirestore
   // 2. load pages with a similar name
   // REPLACE WITH ALGOLIA
   let searchTerm = query.toUpperCase();
-  let sLower = query.toLowerCase();
   let endTerm = searchTerm.substring(0, searchTerm.length - 1) + String.fromCharCode(searchTerm.charCodeAt(searchTerm.length - 1) + 1)
   let snapshot = await Lists.where('nameUpper', '>=', searchTerm).where('nameUpper', '<', endTerm).get();
 
@@ -394,7 +396,6 @@ export function changeListField(listid: string, field: string, value: string){
   upd[field] = value;
   Lists.doc(listid).update(upd);
 }
-
 export function addListView(listid: string, uid: string){
   let date = getCurrentDay();
   let upd: any = {};
@@ -488,6 +489,21 @@ export async function deleteItem(uid: string, listid: string, sid: string, tid: 
   return true;
 }
 
+export function deleteLists(lists: UserList[]){
+  // delete images from lists and lists concurrently
+  for (let list of lists){
+    Lists.doc(list.id).get().then(doc => {
+      if (doc.exists){
+        let data: List = doc.data() as List;
+        let images: string[] = [data.image, data.topImage];
+        deleteImages(images);
+        Lists.doc(list.id).delete();
+      }
+    })
+  }
+
+}
+
 // OTHER DATABASE FUNCTIONS
 export async function uploadImage(name: string, file: fileUpload.UploadedFile, ext: string, callback: Function): Promise<void>{
   file.name = name;
@@ -504,24 +520,21 @@ export async function uploadImage(name: string, file: fileUpload.UploadedFile, e
       callback(url.toString());
     });
   });
-  
-
-  // let file_binary = file.data;
-
-  // let url2file = 'https://firebasestorage.googleapis.com/v0/b/bringit-a32a6.appspot.com/o/images%2F' + name;
-  // let headers = {"Content-Type": "image/" + ext}
-  // let resp = await fetch(url2file, {
-  //   method: 'POST',
-  //   body: file_binary,
-  //   headers
-  // });
-
-  // r = requests.post(url2file, data=file_binary, headers=headers)
-  // let json = await resp.json();
-  // console.log(json);
 }
 
 export async function checkUserCookie(uid: string, session: string): Promise<UserDoc | false> {
   let user: UserDoc[] = await getUser({'.id': uid}, false);
 	return (user.length > 0 && user[0].user.session == session) ? user[0] : false;
+}
+
+function imgName(imgLink: string){
+	let name: string[] = imgLink.split('/')
+	return name[name.length - 1]
+}
+
+export function deleteImages(images: string[]){
+  for (let img of images){
+    let path = `images/${imgName(img)}`
+    Bucket.file(path).delete();
+  }
 }

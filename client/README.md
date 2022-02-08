@@ -1,19 +1,9 @@
 # TODO (in order of importance)
 
-## Account Deletion
-- delete account within settings page
-
 ## Image Usage Detection
 - increment count whenever an image is referenced
 - decrement count if image is changed or list/account is deleted
 - if the number of image references in the db = 0, delete image from collection and from storage
-
-## Browse
-- ranking system
-    - get second degree tags from the top 5 direct search results
-    - weight the results from the second-degree tag search
-    
-- use algolia for name search
 
 ## Server
 - store how many times saved
@@ -34,13 +24,22 @@
 - send validation email address
 - forgot password
 
+## Browse
+- ranking system
+    - get second degree tags from the top 5 direct search results
+    - weight the results from the second-degree tag search
+    
+- use algolia for name search
+
 ## Profile
 - folders?
-
 
 # Done
 
 ## List View
+
+## Account Deletion
+- delete account within settings page
 
 ## Browse
 - extract direct tags from query

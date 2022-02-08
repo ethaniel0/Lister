@@ -428,6 +428,29 @@ app.post('/api/viewer/:listid/checkItem', async (req, res) => {
 	return res.json({'success': ''});
 });
 
+app.post('/api/deleteAccount/:uid', async (req, res) => {
+	// get uid and session info
+	let session = req.cookies['id'];
+	let uid = req.cookies['uid'];
+	if (!session || !uid) return res.json({"error": 'Not logged in'});
+	if (uid != req.params['uid']) return res.json({"error": 'Not logged into the correct account'})
+
+	// check if the user is logged into the right account
+	let users: db.UserDoc[] = await db.getUser({'.id': uid}, false);
+	if (users.length == 0) return res.json({"error": 'User does not exist'});
+	let user = users[0].user;
+	if (user.session != session) return res.json({"error": 'Session expired or incorrect'});
+
+	// begin account deletion
+	let lists: db.UserList[] = user.personalLists;
+	let images: string[] = [user.profPic, user.topPic];
+	db.deleteUser(uid);
+	db.deleteLists(lists);
+	db.deleteImages(images);
+	res.json({"success": "Account deleted"})
+
+})
+
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
