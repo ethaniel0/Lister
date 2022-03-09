@@ -209,7 +209,7 @@ function ListMaker() {
   }, []); // adjust deps
 
   const addTag = (str) => {
-    let arr = [...tags, str];
+    let arr = [...tags, str.toLowerCase()];
     if (!tags.includes(str)) setTags(arr);
     fetch(`/api/edit/${uid}/${listid}/addTag`, {
       method: 'POST',

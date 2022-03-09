@@ -1,5 +1,8 @@
 # TODO (in order of importance)
 
+# List View
+- Put completed tasks at the bottom
+
 ## Image Usage Detection
 - increment count whenever an image is referenced
 - decrement count if image is changed or list/account is deleted

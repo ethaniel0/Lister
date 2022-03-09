@@ -51,4 +51,7 @@
   .pack-list-card .pack-list li {
     min-width: 16em;
   }
+  .pack-list-card > div {
+    width: 90vw;
+  }
 }

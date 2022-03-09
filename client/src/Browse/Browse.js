@@ -1,4 +1,5 @@
 import Header from '../global/Header';
+import List from './List';
 import { useState, useEffect } from 'react';
 import { useHistory, useParams } from "react-router-dom";
 
@@ -59,12 +60,12 @@ const Browse = () => {
                 <br />
                 {
                     lists.map(e => (
-                        <div key={e.id} onClick={() => window.location.href=`/list/${e.uid}/${e.id}`} className='listdiv inline-flex flex-col justify-between items-center border-gray-300 border-2 shadow-lg w-52 h-52' >
-                            <div className='flex-grow w-full bg-contain bg-no-repeat bg-center' style={{top: 0, backgroundImage: `url(${e.img})`}}>
-                            </div>
-                            
-                            <span className='text-2xl mt-2'>{e.name}</span>
-                        </div>
+                        <List key={e.id} uid={e.uid} listid={e.id} img={e.img} name={e.name}></List>
+                        // <div key={e.id} onClick={() => window.location.href=`/list/${e.uid}/${e.id}`} className='listdiv inline-flex flex-col justify-between items-center border-gray-300 border-2 shadow-lg w-52 h-52' >
+                        //     <div className='flex-grow w-full bg-contain bg-no-repeat bg-center' style={{top: 0, backgroundImage: `url(${e.img})`}}>
+                        //     </div>
+                        //     <span className='text-2xl mt-2'>{e.name}</span>
+                        // </div>
                     ))
                 }
             </main>

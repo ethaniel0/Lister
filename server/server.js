@@ -48,7 +48,7 @@ app.get('/testsession', async (req, res) => {
     let u = user[0].user;
     if (u.session !== session)
         return res.json({ error: false });
-    res.json({ name: u.name, uid });
+    res.json({ name: u.name, uid, profPic: u.profPic });
 });
 app.get('/api', (req, res) => {
     res.json({ message: "hello michael" });
@@ -426,6 +426,7 @@ app.post('/api/edit/:uid/:listid/addTag', async (req, res) => {
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });
+    tags = tags.map((t) => t.toLowerCase());
     db.changeListField(listid, 'tags', tags);
     return res.json({ 'success': true });
 });

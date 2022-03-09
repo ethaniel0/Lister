@@ -11,7 +11,7 @@ const Card = ({ card, onEdit }) => {
     }
     
     return (
-        <div className={'pack-list-card mb-8'} style={{transform: 'rotate(3deg)', minWidth: '80%'}} >
+        <div className='pack-list-card mb-8' style={{transform: 'rotate(3deg)', minWidth: '80%'}} >
             <span className="flex justify-between items-center w-full text-2xl text-left mb-2">
                 <span type='text' className={'text-'+card.color+'-500'}>{card.name}</span>  
             </span>

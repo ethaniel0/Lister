@@ -294,7 +294,7 @@ function listSortComparator(a, b) {
 }
 async function getSearchResults(query) {
     // 1. Extract direct tags, load pages with those tags and get their weights
-    let words = query.split(" "); // get individual words
+    let words = query.toLowerCase().split(" "); // get individual words
     let firstDocs = [];
     let idsSeen = new Set();
     let tagsSeen = new Set();
@@ -304,7 +304,7 @@ async function getSearchResults(query) {
             let maxindex = Math.min(i + 10, words.length);
             let seenwords = words.slice(i, maxindex);
             seenwords.forEach(tagsSeen.add, tagsSeen);
-            let snapshot = await Lists.where('tags', 'array-contains-any', seenwords).get();
+            let snapshot = await Lists.where('tags', 'array-contains-any', seenwords).where('public', '==', true).get();
             for (let doc of snapshot.docs) {
                 firstDocs.push([doc, weightDocument(query, doc)]);
                 idsSeen.add(doc.id);
@@ -312,7 +312,7 @@ async function getSearchResults(query) {
         }
     }
     else {
-        let snapshot = await Lists.where('tags', 'array-contains-any', words).get();
+        let snapshot = await Lists.where('tags', 'array-contains-any', words).where('public', '==', true).get();
         for (let doc of snapshot.docs) {
             firstDocs.push([doc, weightDocument(query, doc)]);
             idsSeen.add(doc.id);

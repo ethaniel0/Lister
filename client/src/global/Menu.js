@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useHistory } from "react-router-dom";
 
 
-const Menu = ({ uid, menu }) => {
+const Menu = ({ uid, menu, makeList }) => {
 
     const history = useHistory();
 
@@ -16,6 +16,8 @@ const Menu = ({ uid, menu }) => {
             <hr />
             <Link to={'/profile/' + uid + '/settings'} className='text-center py-2 px-6 hover:bg-gray-200'>Settings</Link>
             <hr />
+            <Link to='#' onClick={makeList} className='text-center py-2 px-6 hover:bg-gray-200 sm:hidden'>New List</Link>
+            <hr className='sm:hidden' />
             <span onClick={logout} className='text-red-500 text-center py-2 px-6 hover:bg-gray-200 rounded-b-md cursor-pointer'>Log Out</span>
         </div>
     )
