@@ -66,7 +66,7 @@ const Profile = ({ savedLists }) => {
             <main className='text-center mt-8 relative'>
                 <h2 className='text-3xl'>My Lists</h2>
                 {/* Show your lists */}
-                <div id="lists" className='p-5 flex justify-center'>
+                <div id="lists" className='p-5 flex flex-wrap justify-center'>
                     {/* Loop over all existing lists */}
                     {
                         profile.personalLists.map((list, ind) => (

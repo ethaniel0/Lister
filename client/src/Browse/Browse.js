@@ -12,6 +12,7 @@ const Browse = () => {
     const [loggedIn, setLogged] = useState(false);
     const [name, setName] = useState("");
     const [uid, setUid] = useState("");
+    const [profPic, setprofPic] = useState("");
     const [menu, showMenu] = useState(false);
     const [search, editSearch] = useState("");
     const [lists, editLists] = useState([]);
@@ -31,19 +32,17 @@ const Browse = () => {
     useEffect(() => {
         let isMounted = true;
         fetch('/testsession').then(res => res.json()).then(json => {
-            console.log(json);
             if (isMounted && !('error' in json)){
                 console.log('logged in');
-                let { name, uid } = json;
+                let { name, uid, profPic } = json;
                 setName(name);
                 setUid(uid);
+                setprofPic(profPic)
                 setLogged(true);
             }
         });
         
         fetch('/api/search/' + query).then(res => res.json()).then(json => {
-            console.log('searching');
-            console.log(json);
             if (isMounted && !('error' in json)){
                 editLists(json.success);
             }
@@ -53,7 +52,7 @@ const Browse = () => {
 
     return (
         <div onClick={bodyClick}>
-            <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} menu={menu} showMenu={showMenu} />
+            <Header showModal={modal} setModal={showModal} logged={loggedIn} name={name} uid={uid} menu={menu} showMenu={showMenu} profPic={profPic} />
             <main className='text-center transition duration-300' style={{filter: (modal ? "blur(10px)" : 'blur(0)')}}>
                 <input onChange={(e) => editSearch(e.target.value)} onKeyPress={detectEnter} type="text" value={search} placeholder="Search" className="bg-gray-200 p-2 text-xl rounded-md mb-4 outline-none w-96 border-2 border-gray-400 " />
                 <h1 className="text-xl font-thin">Search results for &quot;{query}&quot;</h1>

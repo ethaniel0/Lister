@@ -1,7 +1,7 @@
 .listDiv {
     /* transition: transform 0.3s ease; */
     transition: margin 0.3s ease, transform 0.3s ease;
-    margin: 0.25rem;
+    /* margin: 0.25rem; */
 }
 .listDiv:hover {
     transform: scale(105%);

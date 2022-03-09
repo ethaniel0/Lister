@@ -71,7 +71,7 @@ const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu, profPi
                     <Link to="/">About Us</Link>
                 </div>
                 {/* menu */}
-                <div className='flex items-center hidden sm:flex'>
+                <div className={'flex items-center hidden sm:flex'} >
                     {
                         <div>
                             {
@@ -88,14 +88,13 @@ const Header = ({ showModal, setModal, logged, name, uid, menu, showMenu, profPi
                         <span onClick={newList} className='inline-block ml-2 cursor-pointer'>New List</span>
                     </div>
                 </div>
-                <div className='block sm:hidden'>
-                    
+                <div onClick={modalClick} className='flex flex-col items-end sm:hidden'>
                     {
                     !logged 
                     ? <span onClick={() => setModal(true)} className='text-blue-500 text-2xl mr-6 cursor-pointer no-underline'>Login</span>
-                    : <img onClick={() => showMenu(!menu)} src={profPic} alt="profile" className='w-14 h-14 object-cover cursor-pointer rounded-full' />
+                    : <img onClick={() => showMenu(!menu)} id='username' src={profPic} alt="profile" className='w-14 h-14 object-cover cursor-pointer rounded-full' />
                     }
-                    <Menu uid={uid} menu={menu} makeList={() => {}} />
+                    <Menu uid={uid} menu={menu} makeList={newList} />
                 </div>
             </nav>
 
