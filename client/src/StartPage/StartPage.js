@@ -51,7 +51,6 @@ function StartPage() {
     const [menu, showMenu] = useState(false);
 
     const onEdit = (ind, checked) => {
-        console.log(ind);
         let d = Object.assign({}, demo);
         d.items[ind].checked = checked;
         editDemo(d);
@@ -60,9 +59,7 @@ function StartPage() {
     useEffect(() => {
         let isMounted = true;
         fetch('/testsession').then(res => res.json()).then(json => {
-            console.log(json);
             if (isMounted && !('error' in json)){
-                console.log('logged in');
                 let { name, uid, profPic } = json;
                 setName(name);
                 setUid(uid);

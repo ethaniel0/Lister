@@ -9,12 +9,12 @@ const Modal = ({ setModal, showModal, setEmail, email, setPassword, password, se
                             <span id="login-error" style={{display: (error === "" ? 'none' : "block")}} className='text-red-600 font-semibold text-xs text-right'>{error}</span>
                         </div>
                         <div className='font-bold mb-2'>Email</div>
-                        <input id='login-user' type='text' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email or Username' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
+                        <input id='login-user' type='email' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email or Username' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-none rounded-t-lg" required />
                         <div className='font-bold mb-2'>Password</div>
-                        <input id='login-pass' type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
+                        <input id='login-pass' type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-none rounded-t-lg" required />
                         <div id="modal-confirm-pass" style={{display: (valPassword === false ? 'none' : 'block')}}>
                             <span className='font-bold mb-2'>Confirm Password</span>
-                            <input id='login-pass2' type='password' value={valPassword} onChange={(e) => setValPassword(e.target.value)} placeholder='Confirm Password' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-t-lg" required />
+                            <input id='login-pass2' type='password' value={valPassword} onChange={(e) => setValPassword(e.target.value)} placeholder='Confirm Password' className="p-2 border-0 border-b-2 border-black w-full bg-gray-50 shadow-md outline-none mb-6 rounded-none rounded-t-lg" required />
                         </div>
                         <div className="center">
                             <button id="login-submit" onClick={logIn} className="px-6 py-2 rounded-full text-white text-xl cursor-pointer mb-3">Log In</button>
