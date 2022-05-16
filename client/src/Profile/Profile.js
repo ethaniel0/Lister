@@ -59,6 +59,7 @@ const Profile = ({ savedLists }) => {
     const goToList = (listid) => {
         history.push(`/list/${uid}/${listid}`);
     }
+
     
     return (
         <div onClick={() => setMenu(-1)} style={{minHeight: '100vh'}}>

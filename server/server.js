@@ -337,6 +337,10 @@ async function checkList(req, res, uid, listid) {
 app.post('/api/edit/:uid/:listid/editListName', async (req, res) => {
     let { uid, listid } = req.params;
     let { name } = req.body;
+    name = name.replace("&nbsp;", ' ');
+    if (name.length > 50 || name.includes('<') || name.includes('>') || name.includes('&')) {
+        return;
+    }
     let { session, user } = await checkList(req, res, uid, listid);
     if (session === 'error')
         return res.json({ 'error': user });

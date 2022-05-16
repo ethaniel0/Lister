@@ -47,7 +47,14 @@ function ListMaker() {
     return () => { isMounted = false };
 }, [history, listid, trial]);
 
-  const editName = (name) => {
+  const editName = (name, e) => {
+    name = name.replace("&nbsp;", ' ');
+    console.log(name.length);
+    if (name.length > 50 || name.includes('<') || name.includes('>') || name.includes('&')){
+      window.event.preventDefault();
+      return;
+    }
+
     setListName(name);
     if (trial) return;
     fetch(`/api/edit/${uid}/${listid}/editListName`, {
